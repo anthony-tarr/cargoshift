@@ -97,7 +97,7 @@ const App = () => {
       );
 
       spawn.stdout.on('data', (data) => {
-        console.log(data);
+        console.log(data.toString());
       });
 
       spawn.on('close', (code) => {

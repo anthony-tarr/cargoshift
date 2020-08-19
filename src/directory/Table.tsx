@@ -122,7 +122,7 @@ const Table: React.FC = () => {
           return (
             <tr
               style={{
-                color: row.isSelected ? 'red' : 'black',
+                color: row.isSelected ? 'red' : '#fff',
               }}
               onClick={() => selectRow(row)}
               {...row.getRowProps()}
