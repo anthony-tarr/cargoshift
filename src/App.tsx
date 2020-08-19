@@ -90,39 +90,37 @@ const App = () => {
   const createSymlink = () => {
     console.log(selectedRows);
     selectedRows.forEach((row) => {
-      let spawn = child_process.spawnSync(
+      let spawn = child_process.spawn(
         'robocopy',
         ['/S', '/E', `/MT:${robocopyThreads}`, '/V', row.original.path, `${outputDirectory}\\${row.original.name}`],
         { detached: true, stdio: 'pipe' }
       );
 
-      console.log(spawn.output);
+      spawn.stdout.on('data', (data) => {
+        console.log(data);
+      });
 
-      if (spawn.stderr) {
-        console.log(spawn.stderr.toString());
-      }
-      if (spawn.stdout) {
-        console.log(spawn.stdout.toString());
-      }
-
-      spawn = child_process.spawnSync('cmd', ['/C', 'rd', '/S', '/Q', row.original.path], { detached: true });
-      if (spawn.stderr) {
-        console.log(spawn.stderr.toString());
-      }
-      if (spawn.stdout) {
-        console.log(spawn.stdout.toString());
-      }
-      spawn = child_process.spawnSync(
-        'cmd',
-        ['/C', 'mklink', '/J', row.original.path, `${outputDirectory}\\${row.original.name}`],
-        { detached: true }
-      );
-      if (spawn.stderr) {
-        console.log(spawn.stderr.toString());
-      }
-      if (spawn.stdout) {
-        console.log(spawn.stdout.toString());
-      }
+      spawn.on('close', (code) => {
+        console.log(`Robocopy closed with code ${code}`);
+        spawn = child_process.spawnSync('cmd', ['/C', 'rd', '/S', '/Q', row.original.path], { detached: true });
+        if (spawn.stderr) {
+          console.log(spawn.stderr.toString());
+        }
+        if (spawn.stdout) {
+          console.log(spawn.stdout.toString());
+        }
+        spawn = child_process.spawnSync(
+          'cmd',
+          ['/C', 'mklink', '/J', row.original.path, `${outputDirectory}\\${row.original.name}`],
+          { detached: true }
+        );
+        if (spawn.stderr) {
+          console.log(spawn.stderr.toString());
+        }
+        if (spawn.stdout) {
+          console.log(spawn.stdout.toString());
+        }
+      });
     });
 
     const subdirs = getSubdirectories(currentDirectory);
