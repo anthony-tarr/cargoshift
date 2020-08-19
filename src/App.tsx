@@ -1,10 +1,8 @@
-import React, { useMemo, useState } from 'react';
-import { useTable, useRowSelect } from 'react-table';
+import React from 'react';
 import styled from 'styled-components';
-import { Dirent } from 'fs';
-import { DirectoryTreeRow } from './model/DirectoryTreeRow';
 import Table from './directory/Table';
 import Store from './undux/Store';
+import { getSubdirectories } from './util/directory/DirectoryUtils';
 
 const fs = window.require('fs');
 const electron = window.require('electron');
@@ -35,16 +33,6 @@ const App = () => {
   const outputDirectory = store.get('outputDirectory');
   const selectedRows = store.get('selectedRows');
 
-  const mapColumns = (dir: Dirent, path: string): DirectoryTreeRow => {
-    const isLink = dir.isSymbolicLink();
-    return {
-      name: dir.name,
-      isLink,
-      linkedPath: isLink ? fs.readlinkSync(`${path}${dir.name}`) : null,
-      path: `${path}${dir.name}`,
-    };
-  };
-
   const handleDirectoryOpen = async () => {
     const res = await remote.dialog.showOpenDialog({
       properties: ['openDirectory'],
@@ -53,16 +41,7 @@ const App = () => {
     const filePaths = res.filePaths;
     if (filePaths) {
       const path = filePaths[0];
-      const subdirs = fs
-        .readdirSync(path, { withFileTypes: true })
-        .filter((dirent: Dirent) => {
-          // const isHidden = fileIsHidden(`${path}\\${dirent.name}`);
-          // if (isHidden) {
-          //   return false;
-          // }
-          return dirent.isDirectory() || dirent.isSymbolicLink();
-        })
-        .map((dir: Dirent) => mapColumns(dir, path));
+      const subdirs = getSubdirectories(path);
       store.set('directoryList')(subdirs);
       store.set('currentDirectory')(path);
     }
@@ -106,6 +85,7 @@ const App = () => {
   };
 
   const createSymlink = () => {
+    console.log(selectedRows);
     selectedRows.forEach((row) => {
       let spawn = child_process.spawnSync(
         'robocopy',
@@ -143,48 +123,36 @@ const App = () => {
       }
     });
 
-    const subdirs = fs
-      .readdirSync(currentDirectory, { withFileTypes: true })
-      .filter((dirent: Dirent) => {
-        // const isHidden = fileIsHidden(`${path}\\${dirent.name}`);
-        // if (isHidden) {
-        //   return false;
-        // }
-        return dirent.isDirectory() || dirent.isSymbolicLink();
-      })
-      .map((dir: Dirent) => mapColumns(dir, currentDirectory));
-
+    const subdirs = getSubdirectories(currentDirectory);
     store.set('directoryList')(subdirs);
   };
 
   return (
-    <Store.Container>
+    <div>
+      <SelectionHeader>
+        <Path>
+          <div>Source Folder</div>
+          <Input>
+            <div>{currentDirectory}</div>
+            <button onClick={handleDirectoryOpen}>...</button>
+          </Input>
+        </Path>
+        <Path>
+          <div>Destination Folder</div>
+          <Input>
+            <div>{outputDirectory}</div>
+            <button onClick={handleDirectoryOutDir}>...</button>
+          </Input>
+        </Path>
+      </SelectionHeader>
       <div>
-        <SelectionHeader>
-          <Path>
-            <div>Source Folder</div>
-            <Input>
-              <div>{currentDirectory}</div>
-              <button onClick={handleDirectoryOpen}>...</button>
-            </Input>
-          </Path>
-          <Path>
-            <div>Destination Folder</div>
-            <Input>
-              <div>{outputDirectory}</div>
-              <button onClick={handleDirectoryOutDir}>...</button>
-            </Input>
-          </Path>
-        </SelectionHeader>
+        <div>{store.get('directoryList').length > 0 && <Table />}</div>
         <div>
-          <div>{store.get('directoryList').length > 0 && <Table />}</div>
-          <div>
-            <button onClick={createSymlink}>Create symlink</button>
-            <button onClick={removeSymlink}>Remove symlink</button>
-          </div>
+          <button onClick={createSymlink}>Create symlink</button>
+          <button onClick={removeSymlink}>Remove symlink</button>
         </div>
       </div>
-    </Store.Container>
+    </div>
   );
 };
 

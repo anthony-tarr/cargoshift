@@ -3,9 +3,39 @@ import { useTable, useRowSelect, UseRowSelectRowProps, Row } from 'react-table';
 import { useMemo } from 'react';
 import Store from '../undux/Store';
 import { DirectoryTreeRow } from '../model/DirectoryTreeRow';
+import styled from 'styled-components';
+import OpenDirectory from './OpenDirectory';
+import { getSubdirectories } from '../util/directory/DirectoryUtils';
+
+const RowHover = styled.td`
+  background: black;
+  opacity: 0.5;
+  position: absolute;
+  width: 100%;
+`;
+
+const Cell = styled.td`
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+`;
 
 const Table: React.FC = () => {
   const store = Store.useStore();
+  const [hoveredRow, setHoveredRow] = React.useState<number>();
+
+  const directoryList = store.get('directoryList');
+
+  const data = useMemo(
+    () =>
+      directoryList.map((directory) => ({
+        name: directory.name,
+        isLink: <OpenDirectory directory={directory} />,
+        linkedPath: directory.linkedPath,
+      })),
+    [directoryList]
+  );
+
   const columns = useMemo(
     () => [
       {
@@ -24,26 +54,53 @@ const Table: React.FC = () => {
     []
   );
 
-  const {
-    getTableProps,
-    getTableBodyProps,
-    headerGroups,
-    rows,
-    prepareRow,
-    selectedFlatRows,
-    state: { selectedRowIds },
-  } = useTable<any>(
+  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow, selectedFlatRows } = useTable(
     {
       columns,
-      data: store.get('directoryList'),
+      data,
     },
     useRowSelect
   ) as any;
 
-  const selectRow = (e: React.SyntheticEvent, row: UseRowSelectRowProps<DirectoryTreeRow>) => {
-    row.toggleRowSelected();
-    console.log(selectedFlatRows);
+  React.useEffect(() => {
     store.set('selectedRows')(selectedFlatRows);
+  }, [selectedFlatRows]);
+
+  const selectRow = (row: UseRowSelectRowProps<DirectoryTreeRow>) => {
+    row.toggleRowSelected();
+  };
+
+  const onRowHover = (row: Row) => {
+    setHoveredRow(row.index);
+  };
+
+  const onTableLeave = (row) => {
+    setHoveredRow(undefined);
+  };
+
+  const navigateToParent = () => {
+    const split = store.get('currentDirectory').split('\\');
+    split.pop();
+    const path = `${split.join('\\')}\\`;
+    const subdirs = getSubdirectories(path);
+    store.set('directoryList')(subdirs);
+    store.set('currentDirectory')(path);
+  };
+
+  const renderNavigateToParent = () => {
+    const split = store.get('currentDirectory').split('\\');
+    const noParent = split.length < 2 || (split.length === 2 && split[1].trim() === '');
+
+    if (!noParent)
+      return (
+        <tr>
+          <Cell></Cell>
+          <Cell onClick={navigateToParent}>^^^^</Cell>
+          <Cell></Cell>
+        </tr>
+      );
+
+    return null;
   };
 
   return (
@@ -58,6 +115,7 @@ const Table: React.FC = () => {
         ))}
       </thead>
       <tbody {...getTableBodyProps()}>
+        {renderNavigateToParent()}
         {rows.map((row: Row & UseRowSelectRowProps<DirectoryTreeRow>) => {
           prepareRow(row);
           return (
@@ -65,11 +123,11 @@ const Table: React.FC = () => {
               style={{
                 color: row.isSelected ? 'red' : 'black',
               }}
-              onClick={(e) => selectRow(e, row)}
+              onClick={() => selectRow(row)}
               {...row.getRowProps()}
             >
-              {row.cells.map((cell: Record<string, any>) => {
-                return <td {...cell.getCellProps()}>{cell.render('Cell')}</td>;
+              {row.cells.map((cell: Record<string, any>, index: number) => {
+                return <Cell {...cell.getCellProps()}>{cell.render('Cell')}</Cell>;
               })}
             </tr>
           );
