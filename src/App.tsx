@@ -4,10 +4,9 @@ import Table from './directory/Table';
 import Store from './undux/Store';
 import { getSubdirectories } from './util/directory/DirectoryUtils';
 
-const fs = window.require('fs');
 const electron = window.require('electron');
 const child_process = window.require('child_process');
-const { remote } = electron;
+const { remote, ipcRenderer } = electron;
 
 const SelectionHeader = styled.div`
   display: flex;
@@ -32,6 +31,7 @@ const App = () => {
   const currentDirectory = store.get('currentDirectory');
   const outputDirectory = store.get('outputDirectory');
   const selectedRows = store.get('selectedRows');
+  const robocopyThreads = 16;
 
   const handleDirectoryOpen = async () => {
     const res = await remote.dialog.showOpenDialog({
@@ -73,7 +73,7 @@ const App = () => {
       // Copy from destination dir back to source
       spawn = child_process.spawnSync(
         'robocopy',
-        ['/S', '/E', '/MT:32', '/V', `${outputDirectory}\\${row.original.name}`, row.original.path],
+        ['/S', '/E', `/MT:${robocopyThreads}`, '/V', `${outputDirectory}\\${row.original.name}`, row.original.path],
         { detached: true }
       );
 
@@ -82,6 +82,9 @@ const App = () => {
         detached: true,
       });
     });
+
+    const subdirs = getSubdirectories(currentDirectory);
+    store.set('directoryList')(subdirs);
   };
 
   const createSymlink = () => {
@@ -89,11 +92,12 @@ const App = () => {
     selectedRows.forEach((row) => {
       let spawn = child_process.spawnSync(
         'robocopy',
-        ['/S', '/E', '/MT:32', '/V', row.original.path, `${outputDirectory}\\${row.original.name}`],
-        { detached: true }
+        ['/S', '/E', `/MT:${robocopyThreads}`, '/V', row.original.path, `${outputDirectory}\\${row.original.name}`],
+        { detached: true, stdio: 'pipe' }
       );
 
-      console.log(spawn);
+      console.log(spawn.output);
+
       if (spawn.stderr) {
         console.log(spawn.stderr.toString());
       }
@@ -102,7 +106,6 @@ const App = () => {
       }
 
       spawn = child_process.spawnSync('cmd', ['/C', 'rd', '/S', '/Q', row.original.path], { detached: true });
-      console.log(spawn);
       if (spawn.stderr) {
         console.log(spawn.stderr.toString());
       }
@@ -114,7 +117,6 @@ const App = () => {
         ['/C', 'mklink', '/J', row.original.path, `${outputDirectory}\\${row.original.name}`],
         { detached: true }
       );
-      console.log(spawn);
       if (spawn.stderr) {
         console.log(spawn.stderr.toString());
       }

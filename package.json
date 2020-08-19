@@ -22,6 +22,7 @@
     "wait-on": "^5.2.0"
   },
   "dependencies": {
+    "@types/nedb": "^1.8.10",
     "@types/node": "^14.6.0",
     "@types/react-table": "^7.0.22",
     "@types/styled-components": "^5.1.2",
@@ -29,6 +30,7 @@
     "cross-env": "^7.0.2",
     "electron-is-dev": "^1.2.0",
     "get-file-properties": "^1.0.1",
+    "nedb": "^1.8.0",
     "path": "^0.12.7",
     "react-table": "^7.5.0",
     "styled-components": "^5.1.1",

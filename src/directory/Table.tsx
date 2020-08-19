@@ -32,6 +32,7 @@ const Table: React.FC = () => {
         name: directory.name,
         isLink: <OpenDirectory directory={directory} />,
         linkedPath: directory.linkedPath,
+        path: directory.path,
       })),
     [directoryList]
   );
