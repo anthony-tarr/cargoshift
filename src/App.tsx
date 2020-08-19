@@ -1,7 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { useTable, useRowSelect, Row } from 'react-table';
+import { useTable, useRowSelect } from 'react-table';
 import styled from 'styled-components';
 import { Dirent } from 'fs';
+import { DirectoryTreeRow } from './model/DirectoryTreeRow';
+import Table from './directory/Table';
+import Store from './undux/Store';
 
 const fs = window.require('fs');
 const electron = window.require('electron');
@@ -26,44 +29,13 @@ const Input = styled.div`
 `;
 
 const App = () => {
-  const [currentDir, setCurrentDir] = useState('<select a directory path>');
-  const [outDir, setOutDir] = useState('<select a directory path>');
-  const [directories, setDirectories] = useState([]);
-  const columns = useMemo(
-    () => [
-      {
-        Header: 'Directory',
-        accessor: 'name',
-      },
-      {
-        Header: '',
-        accessor: 'isLink',
-      },
-      {
-        Header: 'Symlink Path',
-        accessor: 'linkedPath',
-      },
-    ],
-    []
-  );
+  const store = Store.useStore();
 
-  const {
-    getTableProps,
-    getTableBodyProps,
-    headerGroups,
-    rows,
-    prepareRow,
-    selectedFlatRows,
-    state: { selectedRowIds },
-  } = useTable(
-    {
-      columns,
-      data: directories,
-    },
-    useRowSelect
-  );
+  const currentDirectory = store.get('currentDirectory');
+  const outputDirectory = store.get('outputDirectory');
+  const selectedRows = store.get('selectedRows');
 
-  const mapColumns = (dir: Dirent, path: string) => {
+  const mapColumns = (dir: Dirent, path: string): DirectoryTreeRow => {
     const isLink = dir.isSymbolicLink();
     return {
       name: dir.name,
@@ -91,8 +63,8 @@ const App = () => {
           return dirent.isDirectory() || dirent.isSymbolicLink();
         })
         .map((dir: Dirent) => mapColumns(dir, path));
-      setDirectories(subdirs);
-      setCurrentDir(path);
+      store.set('directoryList')(subdirs);
+      store.set('currentDirectory')(path);
     }
   };
 
@@ -103,30 +75,12 @@ const App = () => {
 
     const filePaths = res.filePaths;
     if (filePaths) {
-      setOutDir(filePaths);
+      store.set('outputDirectory')(filePaths);
     }
-  };
-
-  const fileIsHidden = (path: string) => {
-    try {
-      const stdout = child_process.execSync(`attrib ${path}`).toString();
-      const sliced = stdout.slice(0, 5);
-      const isHidden = (sliced && sliced[4]) || undefined;
-      console.log(isHidden);
-      return isHidden === 'H';
-    } catch (e) {
-      // Just show the file otherwise, don't want to break things
-      console.error(e);
-      return true;
-    }
-  };
-
-  const selectRow = (e, row) => {
-    row.toggleRowSelected();
   };
 
   const removeSymlink = () => {
-    selectedFlatRows.forEach((row) => {
+    selectedRows.forEach((row) => {
       // Remove the symlink directory
       let spawn = child_process.spawnSync('cmd', ['/C', 'rd', row.original.path], { detached: true });
       console.log(spawn);
@@ -140,23 +94,22 @@ const App = () => {
       // Copy from destination dir back to source
       spawn = child_process.spawnSync(
         'robocopy',
-        ['/S', '/E', '/MT:32', '/V', `${outDir}\\${row.original.name}`, row.original.path],
+        ['/S', '/E', '/MT:32', '/V', `${outputDirectory}\\${row.original.name}`, row.original.path],
         { detached: true }
       );
 
       // Remove destination dir
-      spawn = child_process.spawnSync('cmd', ['/C', 'rd', '/S', '/Q', `${outDir}\\${row.original.name}`], {
+      spawn = child_process.spawnSync('cmd', ['/C', 'rd', '/S', '/Q', `${outputDirectory}\\${row.original.name}`], {
         detached: true,
       });
     });
   };
 
   const createSymlink = () => {
-    console.log(selectedFlatRows);
-    selectedFlatRows.forEach((row) => {
+    selectedRows.forEach((row) => {
       let spawn = child_process.spawnSync(
         'robocopy',
-        ['/S', '/E', '/MT:32', '/V', row.original.path, `${outDir}\\${row.original.name}`],
+        ['/S', '/E', '/MT:32', '/V', row.original.path, `${outputDirectory}\\${row.original.name}`],
         { detached: true }
       );
 
@@ -178,7 +131,7 @@ const App = () => {
       }
       spawn = child_process.spawnSync(
         'cmd',
-        ['/C', 'mklink', '/J', row.original.path, `${outDir}\\${row.original.name}`],
+        ['/C', 'mklink', '/J', row.original.path, `${outputDirectory}\\${row.original.name}`],
         { detached: true }
       );
       console.log(spawn);
@@ -190,9 +143,8 @@ const App = () => {
       }
     });
 
-    // refresh
     const subdirs = fs
-      .readdirSync(currentDir, { withFileTypes: true })
+      .readdirSync(currentDirectory, { withFileTypes: true })
       .filter((dirent: Dirent) => {
         // const isHidden = fileIsHidden(`${path}\\${dirent.name}`);
         // if (isHidden) {
@@ -200,64 +152,39 @@ const App = () => {
         // }
         return dirent.isDirectory() || dirent.isSymbolicLink();
       })
-      .map((dir: Dirent) => mapColumns(dir, currentDir));
-    setDirectories(subdirs);
+      .map((dir: Dirent) => mapColumns(dir, currentDirectory));
+
+    store.set('directoryList')(subdirs);
   };
 
   return (
-    <div>
-      <SelectionHeader>
-        <Path>
-          <div>Source Folder</div>
-          <Input>
-            <div>{currentDir}</div>
-            <button onClick={handleDirectoryOpen}>...</button>
-          </Input>
-        </Path>
-        <Path>
-          <div>Destination Folder</div>
-          <Input>
-            <div>{outDir}</div>
-            <button onClick={handleDirectoryOutDir}>...</button>
-          </Input>
-        </Path>
-      </SelectionHeader>
+    <Store.Container>
       <div>
-        {directories && (
-          <table {...getTableProps()}>
-            <thead>
-              {headerGroups.map((headerGroup) => (
-                <tr {...headerGroup.getHeaderGroupProps()}>
-                  {headerGroup.headers.map((column) => (
-                    <th {...column.getHeaderProps()}>{column.render('Header')}</th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
-            <tbody {...getTableBodyProps()}>
-              {rows.map((row: Row) => {
-                prepareRow(row);
-                return (
-                  <tr
-                    style={{
-                      color: row.isSelected ? 'red' : 'black',
-                    }}
-                    onClick={(e) => selectRow(e, row)}
-                    {...row.getRowProps()}
-                  >
-                    {row.cells.map((cell) => {
-                      return <td {...cell.getCellProps()}>{cell.render('Cell')}</td>;
-                    })}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
+        <SelectionHeader>
+          <Path>
+            <div>Source Folder</div>
+            <Input>
+              <div>{currentDirectory}</div>
+              <button onClick={handleDirectoryOpen}>...</button>
+            </Input>
+          </Path>
+          <Path>
+            <div>Destination Folder</div>
+            <Input>
+              <div>{outputDirectory}</div>
+              <button onClick={handleDirectoryOutDir}>...</button>
+            </Input>
+          </Path>
+        </SelectionHeader>
+        <div>
+          <div>{store.get('directoryList').length > 0 && <Table />}</div>
+          <div>
+            <button onClick={createSymlink}>Create symlink</button>
+            <button onClick={removeSymlink}>Remove symlink</button>
+          </div>
+        </div>
       </div>
-      <button onClick={createSymlink}>Create symlink</button>
-      <button onClick={removeSymlink}>Remove symlink</button>
-    </div>
+    </Store.Container>
   );
 };
 
