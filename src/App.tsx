@@ -111,6 +111,10 @@ const App = () => {
       properties: ['openDirectory'],
     });
 
+    if (res.canceled) {
+      return;
+    }
+
     const filePaths = res.filePaths;
     if (filePaths) {
       const path = filePaths[0];
@@ -124,6 +128,10 @@ const App = () => {
     const res = await remote.dialog.showOpenDialog({
       properties: ['openDirectory'],
     });
+
+    if (res.canceled) {
+      return;
+    }
 
     const filePaths = res.filePaths;
     if (filePaths) {

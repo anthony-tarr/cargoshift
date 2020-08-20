@@ -22,7 +22,7 @@ body {
   font-family: 'Segoe UI', sans-serif;
   background: #1a2933;
   color: #fff;
-  border: 1px solid #48545c;
+  border: 1px solid transparent;
   overflow-y: hidden;
 }
 

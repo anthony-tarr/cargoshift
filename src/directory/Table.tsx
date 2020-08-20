@@ -35,6 +35,16 @@ const TableRow = styled.tr`
   background: ${(props) => (props.selected ? 'rgba(0, 0, 0, 0.5)' : 'transparent')};
   height: 24px;
   margin: 2px 0;
+
+  .open-directory {
+    opacity: 0;
+  }
+
+  &:hover {
+    .open-directory {
+      opacity: 1;
+    }
+  }
 `;
 
 const Table: React.FC = () => {
@@ -47,7 +57,7 @@ const Table: React.FC = () => {
     () =>
       directoryList.map((directory) => ({
         name: directory.name,
-        isLink: <OpenDirectory directory={directory} />,
+        goTo: <OpenDirectory directory={directory} />,
         linkedPath: directory.linkedPath,
         path: directory.path,
       })),
@@ -62,7 +72,7 @@ const Table: React.FC = () => {
       },
       {
         Header: '',
-        accessor: 'isLink',
+        accessor: 'goTo',
       },
       {
         Header: 'Symlink Path',
@@ -112,8 +122,8 @@ const Table: React.FC = () => {
     if (!noParent)
       return (
         <tr>
+          <Cell onClick={navigateToParent}>...</Cell>
           <Cell></Cell>
-          <Cell onClick={navigateToParent}>^^^^</Cell>
           <Cell></Cell>
         </tr>
       );
