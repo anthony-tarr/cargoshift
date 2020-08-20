@@ -14,10 +14,27 @@ const RowHover = styled.td`
   width: 100%;
 `;
 
+const StyledHeader = styled.th`
+  padding: 12px;
+`;
+
 const Cell = styled.td`
+  padding: 6px;
   position: relative;
   cursor: pointer;
   user-select: none;
+`;
+
+const StyledTable = styled.table`
+  color: #fff;
+  font-size: 16px;
+  border-collapse: collapse;
+`;
+
+const TableRow = styled.tr`
+  background: ${(props) => (props.selected ? 'rgba(0, 0, 0, 0.5)' : 'transparent')};
+  height: 24px;
+  margin: 2px 0;
 `;
 
 const Table: React.FC = () => {
@@ -105,12 +122,12 @@ const Table: React.FC = () => {
   };
 
   return (
-    <table {...getTableProps()}>
+    <StyledTable {...getTableProps()}>
       <thead>
         {headerGroups.map((headerGroup: Record<string, any>) => (
           <tr {...headerGroup.getHeaderGroupProps()}>
             {headerGroup.headers.map((column: Record<string, any>) => (
-              <th {...column.getHeaderProps()}>{column.render('Header')}</th>
+              <StyledHeader {...column.getHeaderProps()}>{column.render('Header')}</StyledHeader>
             ))}
           </tr>
         ))}
@@ -120,21 +137,15 @@ const Table: React.FC = () => {
         {rows.map((row: Row & UseRowSelectRowProps<DirectoryTreeRow>) => {
           prepareRow(row);
           return (
-            <tr
-              style={{
-                color: row.isSelected ? 'red' : '#fff',
-              }}
-              onClick={() => selectRow(row)}
-              {...row.getRowProps()}
-            >
+            <TableRow selected={row.isSelected} onClick={() => selectRow(row)} {...row.getRowProps()}>
               {row.cells.map((cell: Record<string, any>, index: number) => {
                 return <Cell {...cell.getCellProps()}>{cell.render('Cell')}</Cell>;
               })}
-            </tr>
+            </TableRow>
           );
         })}
       </tbody>
-    </table>
+    </StyledTable>
   );
 };
 

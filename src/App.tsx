@@ -3,26 +3,99 @@ import styled from 'styled-components';
 import Table from './directory/Table';
 import Store from './undux/Store';
 import { getSubdirectories } from './util/directory/DirectoryUtils';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEllipsisH } from '@fortawesome/free-solid-svg-icons';
 
 const electron = window.require('electron');
 const child_process = window.require('child_process');
-const { remote, ipcRenderer } = electron;
+const { remote } = electron;
 
 const SelectionHeader = styled.div`
   display: flex;
   justify-content: space-between;
   max-width: 700px;
-  margin-bottom: 25px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  padding: 20px;
 `;
 
 const Path = styled.div`
   width: 300px;
+  font-size: 14px;
+
+  > .header {
+    margin-bottom: 10px;
+  }
 `;
 
 const Input = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
+
+  > .inputField {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    width: calc(100% - 20px);
+    padding: 4px;
+  }
+
+  button {
+    padding: 4px;
+    margin-left: 8px;
+  }
+`;
+
+const DirectoryButton = styled.button`
+  padding: 2px;
+  height: 24px;
+  width: 24px;
+  font-size: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 2px;
+  cursor: pointer;
+  color: #eee;
+  background: rgba(255, 255, 255, 0.1);
+  transition: all 0.1s ease-in-out;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  &:focus {
+    border: none;
+    outline: none;
+  }
+`;
+
+const Button = styled.button`
+  padding: 12px;
+  border-radius: 4px;
+  color: #eee;
+  background: rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: all 0.1s ease-in-out;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+`;
+
+const FloatingButtons = styled.div`
+  position: absolute;
+  width: 200px;
+  display: flex;
+  justify-content: space-between;
+  bottom: 25px;
+  right: 25px;
+`;
+
+const Content = styled.div`
+  margin-bottom: 50px;
 `;
 
 const App = () => {
@@ -131,27 +204,33 @@ const App = () => {
     <div>
       <SelectionHeader>
         <Path>
-          <div>Source Folder</div>
+          <div className="header">Source Folder</div>
           <Input>
-            <div>{currentDirectory}</div>
-            <button onClick={handleDirectoryOpen}>...</button>
+            <div className="inputField">{currentDirectory}</div>
+            <DirectoryButton onClick={handleDirectoryOpen}>
+              <FontAwesomeIcon icon={faEllipsisH} />
+            </DirectoryButton>
           </Input>
         </Path>
         <Path>
-          <div>Destination Folder</div>
+          <div className="header">Destination Folder</div>
           <Input>
-            <div>{outputDirectory}</div>
-            <button onClick={handleDirectoryOutDir}>...</button>
+            <div className="inputField">{outputDirectory}</div>
+            <DirectoryButton onClick={handleDirectoryOutDir}>
+              <FontAwesomeIcon icon={faEllipsisH} />
+            </DirectoryButton>
           </Input>
         </Path>
       </SelectionHeader>
-      <div>
-        <div>{store.get('directoryList').length > 0 && <Table />}</div>
+      <Content>
         <div>
-          <button onClick={createSymlink}>Create symlink</button>
-          <button onClick={removeSymlink}>Remove symlink</button>
+          <Table />
         </div>
-      </div>
+        <FloatingButtons>
+          <Button onClick={createSymlink}>Create link</Button>
+          <Button onClick={removeSymlink}>Remove link</Button>
+        </FloatingButtons>
+      </Content>
     </div>
   );
 };
