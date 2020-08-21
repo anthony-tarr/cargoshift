@@ -5,10 +5,18 @@ import Store from './undux/Store';
 import { getSubdirectories } from './util/directory/DirectoryUtils';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEllipsisH } from '@fortawesome/free-solid-svg-icons';
+import TopNav from './navigation/TopNav';
+import './_index.scss';
 
 const electron = window.require('electron');
 const child_process = window.require('child_process');
 const { remote } = electron;
+
+const Container = styled.div`
+  padding: 12px;
+  margin-top: 40px;
+  overflow: auto;
+`;
 
 const SelectionHeader = styled.div`
   display: flex;
@@ -209,37 +217,43 @@ const App = () => {
   };
 
   return (
-    <div>
-      <SelectionHeader>
-        <Path>
-          <div className="header">Source Folder</div>
-          <Input>
-            <div className="inputField">{currentDirectory}</div>
-            <DirectoryButton onClick={handleDirectoryOpen}>
-              <FontAwesomeIcon icon={faEllipsisH} />
-            </DirectoryButton>
-          </Input>
-        </Path>
-        <Path>
-          <div className="header">Destination Folder</div>
-          <Input>
-            <div className="inputField">{outputDirectory}</div>
-            <DirectoryButton onClick={handleDirectoryOutDir}>
-              <FontAwesomeIcon icon={faEllipsisH} />
-            </DirectoryButton>
-          </Input>
-        </Path>
-      </SelectionHeader>
-      <Content>
+    <>
+      <TopNav />
+
+      <Container>
         <div>
-          <Table />
+          <SelectionHeader>
+            <Path>
+              <div className="header">Source Folder</div>
+              <Input>
+                <div className="inputField">{currentDirectory}</div>
+                <DirectoryButton onClick={handleDirectoryOpen}>
+                  <FontAwesomeIcon icon={faEllipsisH} />
+                </DirectoryButton>
+              </Input>
+            </Path>
+            <Path>
+              <div className="header">Destination Folder</div>
+              <Input>
+                <div className="inputField">{outputDirectory}</div>
+                <DirectoryButton onClick={handleDirectoryOutDir}>
+                  <FontAwesomeIcon icon={faEllipsisH} />
+                </DirectoryButton>
+              </Input>
+            </Path>
+          </SelectionHeader>
+          <Content>
+            <div>
+              <Table />
+            </div>
+            <FloatingButtons>
+              <Button onClick={createSymlink}>Create link</Button>
+              <Button onClick={removeSymlink}>Remove link</Button>
+            </FloatingButtons>
+          </Content>
         </div>
-        <FloatingButtons>
-          <Button onClick={createSymlink}>Create link</Button>
-          <Button onClick={removeSymlink}>Remove link</Button>
-        </FloatingButtons>
-      </Content>
-    </div>
+      </Container>
+    </>
   );
 };
 

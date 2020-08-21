@@ -18,7 +18,8 @@
     "win": {
       "icon": "icons/app.png",
       "target": [
-        "portable"
+        "portable",
+        "nsis"
       ]
     }
   },
@@ -47,6 +48,7 @@
     "electron": "^9.2.0",
     "electron-builder": "^22.8.0",
     "parcel": "^2.0.0-beta.1",
+    "sass": "^1.26.10",
     "wait-on": "^5.2.0"
   },
   "dependencies": {
