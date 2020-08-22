@@ -10,12 +10,12 @@ import { robocopy, removeDirectory, makeLink } from './commands/Commands';
 import './_index.scss';
 
 const electron = window.require('electron');
-const child_process = window.require('child_process');
 const { remote } = electron;
 
 const Container = styled.div`
   padding: 12px;
-  margin-top: 40px;
+  margin-top: 50px;
+  margin-bottom: 60px;
   overflow: auto;
 `;
 
@@ -82,38 +82,43 @@ const DirectoryButton = styled.button`
 `;
 
 const Button = styled.button`
+  user-select: none;
+  font-family: 'NotoSans';
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
   padding: 12px;
   border-radius: 4px;
   color: #eee;
   background: rgba(255, 255, 255, 0.1);
   cursor: pointer;
-  transition: all 0.1s ease-in-out;
+  transition: all 0.2s ease-in-out;
 
   &:hover {
     background: rgba(255, 255, 255, 0.2);
+  }
+
+  &:disabled {
+    pointer-events: none;
+    background: rgba(1, 1, 1, 0.1);
   }
 `;
 
 const FloatingButtons = styled.div`
   position: absolute;
-  width: 200px;
+  width: 260px;
   display: flex;
   justify-content: space-between;
   bottom: 25px;
   right: 25px;
 `;
 
-const Content = styled.div`
-  margin-bottom: 50px;
-`;
+const Content = styled.div``;
 
 const App = () => {
   const store = Store.useStore();
 
   const currentDirectory = store.get('currentDirectory');
   const outputDirectory = store.get('outputDirectory');
-  const selectedRows = store.get('selectedRows');
-  const robocopyThreads = 16;
 
   const handleDirectoryOpen = async () => {
     const res = await remote.dialog.showOpenDialog({
@@ -149,10 +154,13 @@ const App = () => {
   };
 
   const createSymlink = async () => {
-    for (const row of selectedRows) {
+    for (const row of store.get('selectedRows')) {
       const destination = `${outputDirectory}\\${row.original.name}`;
+      console.log('  RUNNING COPY');
       await robocopy(row.original.path, destination);
+      console.log('  RUNNING RD');
       await removeDirectory(row.original.path);
+      console.log('  RUNNING MKLINK');
       await makeLink(row.original.path, destination);
     }
 
@@ -162,21 +170,41 @@ const App = () => {
   };
 
   const removeSymlink = async () => {
-    for (const row of selectedRows) {
+    for (const row of store.get('selectedRows')) {
       // Remove the symlink directory
+      console.log('  RUNNING RD');
       await removeDirectory(row.original.path, true);
 
       // Copy from destination dir back to source
       console.log(`${outputDirectory}\\${row.original.name}`);
+      console.log('  RUNNING COPY');
       await robocopy(`${outputDirectory}\\${row.original.name}`, row.original.path);
 
       // Remove destination dir
+      console.log('  RUNNING RD');
       await removeDirectory(`${outputDirectory}\\${row.original.name}`);
     }
 
     console.log('refreshing directories');
     const subdirs = getSubdirectories(currentDirectory);
     store.set('directoryList')(subdirs);
+  };
+
+  const isCreateLinkDisabled = () => {
+    const selectedRows = store.get('selectedRows');
+    const hasLinkedPath = selectedRows.find((row) => row.original.linkedPath !== null);
+    console.log(hasLinkedPath);
+  };
+
+  const isRemoveLinkDisabled = () => {
+    console.log('am i being evaluated');
+    const selectedRows = store.get('selectedRows');
+    const hasLinkedPath = selectedRows.find((row) => row.original.linkedPath !== null);
+    console.log(hasLinkedPath);
+    if (hasLinkedPath) {
+      return false;
+    }
+    return true;
   };
 
   return (
@@ -211,7 +239,9 @@ const App = () => {
             </div>
             <FloatingButtons>
               <Button onClick={createSymlink}>Create link</Button>
-              <Button onClick={removeSymlink}>Remove link</Button>
+              <Button disabled={isRemoveLinkDisabled()} onClick={removeSymlink}>
+                Remove link
+              </Button>
             </FloatingButtons>
           </Content>
         </div>

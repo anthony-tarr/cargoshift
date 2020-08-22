@@ -19,6 +19,18 @@ export function robocopy(source: string, destination: string) {
       console.log(data.toString());
     });
 
+    robocopyProcess.stdout.on('end', () => {
+      // send this to the log eventually
+      console.log('No more data to read.');
+      resolve();
+    });
+
+    robocopyProcess.stdout.on('close', () => {
+      // send this to the log eventually
+      console.log('Output stream closed.');
+      resolve();
+    });
+
     robocopyProcess.stderr.on('data', (data) => {
       // send this to the log eventually
       console.error(data.toString());
@@ -40,16 +52,34 @@ export function robocopy(source: string, destination: string) {
 
 export function removeDirectory(path: string, isSymlink = false) {
   return new Promise((resolve, reject) => {
-    let process;
+    let args;
     if (isSymlink) {
       // idk why this one is different lol
-      process = child_process.spawn('cmd', ['/C', 'rd', path]);
+      args = ['/C', 'rd', path];
     } else {
-      process = child_process.spawn('cmd', ['/C', 'rd', '/S', '/Q', path]);
+      args = ['/C', 'rd', '/S', '/Q', path];
     }
+
+    const process = child_process.spawn('cmd', args);
 
     process.stdout.on('data', (data) => {
       // send this to the log eventually
+      console.log(data.toString());
+    });
+
+    process.stdout.on('end', () => {
+      // send this to the log eventually
+      console.log('No more data to read.');
+      resolve();
+    });
+
+    process.stdout.on('close', () => {
+      // send this to the log eventually
+      console.log('Output stream closed.');
+      resolve();
+    });
+
+    process.stderr.on('data', (data) => {
       console.log(data.toString());
     });
 
@@ -74,6 +104,22 @@ export function makeLink(fromPath: string, toPath: string) {
     process.stdout.on('data', (data) => {
       // send this to the log eventually
       console.log('logging makelink');
+      console.log(data.toString());
+    });
+
+    process.stdout.on('end', () => {
+      // send this to the log eventually
+      console.log('No more data to read.');
+      resolve();
+    });
+
+    process.stdout.on('close', () => {
+      // send this to the log eventually
+      console.log('Output stream closed.');
+      resolve();
+    });
+
+    process.stderr.on('data', (data) => {
       console.log(data.toString());
     });
 

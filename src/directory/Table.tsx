@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useTable, useRowSelect, UseRowSelectRowProps, Row } from 'react-table';
+import { useTable, useRowSelect, UseRowSelectRowProps } from 'react-table';
 import { useMemo } from 'react';
 import Store from '../undux/Store';
 import { DirectoryTreeRow } from '../model/DirectoryTreeRow';
@@ -23,24 +23,36 @@ const Cell = styled.td`
   position: relative;
   cursor: pointer;
   user-select: none;
+
+  &:first-child {
+    padding-left: 12px;
+  }
+
+  &:last-child {
+    padding-right: 12px;
+  }
 `;
 
 const StyledTable = styled.table`
-  color: #fff;
+  color: #ddd;
   font-size: 16px;
   border-collapse: collapse;
 `;
 
 const TableRow = styled.tr`
+  color: ${(props) => (props.selected ? '#fff' : '#eee')};
   background: ${(props) => (props.selected ? 'rgba(0, 0, 0, 0.5)' : 'transparent')};
   height: 24px;
+  padding: 0 12px;
   margin: 2px 0;
+  transition: all 0.1s ease-in-out;
 
   .open-directory {
     opacity: 0;
   }
 
   &:hover {
+    color: #fff;
     .open-directory {
       opacity: 1;
     }

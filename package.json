@@ -57,16 +57,17 @@
     "@fortawesome/free-regular-svg-icons": "^5.14.0",
     "@fortawesome/free-solid-svg-icons": "^5.14.0",
     "@fortawesome/react-fontawesome": "^0.1.11",
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1",
-    "typescript": "^3.9.7",
     "electron-is-dev": "^1.2.0",
+    "fswin": "^3.19.908",
     "get-file-properties": "^1.0.1",
     "nedb": "^1.8.0",
     "path": "^0.12.7",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
     "react-table": "^7.5.0",
     "rimraf": "^3.0.2",
     "styled-components": "^5.1.1",
+    "typescript": "^3.9.7",
     "undux": "^5.2.0"
   }
 }

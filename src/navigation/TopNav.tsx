@@ -41,10 +41,7 @@ const TopNav: React.FunctionComponent<ITopNavProps> = (props) => {
   return (
     <StyledTopNav>
       <LeftSection>
-        <NavButton>
-          {' '}
-          <FontAwesomeIcon icon={faHome} />
-        </NavButton>
+        <NavButton>HOME</NavButton>
         <NavButton>LINKS</NavButton>
         <NavButton>LOGS</NavButton>
       </LeftSection>
