@@ -6,6 +6,7 @@ import { getSubdirectories } from './util/directory/DirectoryUtils';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEllipsisH } from '@fortawesome/free-solid-svg-icons';
 import TopNav from './navigation/TopNav';
+import { robocopy, removeDirectory, makeLink } from './commands/Commands';
 import './_index.scss';
 
 const electron = window.require('electron');
@@ -147,71 +148,33 @@ const App = () => {
     }
   };
 
-  const removeSymlink = () => {
-    selectedRows.forEach((row) => {
-      // Remove the symlink directory
-      let spawn = child_process.spawnSync('cmd', ['/C', 'rd', row.original.path], { detached: true });
-      console.log(spawn);
-      if (spawn.stderr) {
-        console.log(spawn.stderr.toString());
-      }
-      if (spawn.stdout) {
-        console.log(spawn.stdout.toString());
-      }
+  const createSymlink = async () => {
+    for (const row of selectedRows) {
+      const destination = `${outputDirectory}\\${row.original.name}`;
+      await robocopy(row.original.path, destination);
+      await removeDirectory(row.original.path);
+      await makeLink(row.original.path, destination);
+    }
 
-      // Copy from destination dir back to source
-      spawn = child_process.spawnSync(
-        'robocopy',
-        ['/S', '/E', `/MT:${robocopyThreads}`, '/V', `${outputDirectory}\\${row.original.name}`, row.original.path],
-        { detached: true }
-      );
-
-      // Remove destination dir
-      spawn = child_process.spawnSync('cmd', ['/C', 'rd', '/S', '/Q', `${outputDirectory}\\${row.original.name}`], {
-        detached: true,
-      });
-    });
-
+    console.log('refreshing directories');
     const subdirs = getSubdirectories(currentDirectory);
     store.set('directoryList')(subdirs);
   };
 
-  const createSymlink = () => {
-    console.log(selectedRows);
-    selectedRows.forEach((row) => {
-      let spawn = child_process.spawn(
-        'robocopy',
-        ['/S', '/E', `/MT:${robocopyThreads}`, '/V', row.original.path, `${outputDirectory}\\${row.original.name}`],
-        { detached: true, stdio: 'pipe' }
-      );
+  const removeSymlink = async () => {
+    for (const row of selectedRows) {
+      // Remove the symlink directory
+      await removeDirectory(row.original.path, true);
 
-      spawn.stdout.on('data', (data) => {
-        console.log(data.toString());
-      });
+      // Copy from destination dir back to source
+      console.log(`${outputDirectory}\\${row.original.name}`);
+      await robocopy(`${outputDirectory}\\${row.original.name}`, row.original.path);
 
-      spawn.on('close', (code) => {
-        console.log(`Robocopy closed with code ${code}`);
-        spawn = child_process.spawnSync('cmd', ['/C', 'rd', '/S', '/Q', row.original.path], { detached: true });
-        if (spawn.stderr) {
-          console.log(spawn.stderr.toString());
-        }
-        if (spawn.stdout) {
-          console.log(spawn.stdout.toString());
-        }
-        spawn = child_process.spawnSync(
-          'cmd',
-          ['/C', 'mklink', '/J', row.original.path, `${outputDirectory}\\${row.original.name}`],
-          { detached: true }
-        );
-        if (spawn.stderr) {
-          console.log(spawn.stderr.toString());
-        }
-        if (spawn.stdout) {
-          console.log(spawn.stdout.toString());
-        }
-      });
-    });
+      // Remove destination dir
+      await removeDirectory(`${outputDirectory}\\${row.original.name}`);
+    }
 
+    console.log('refreshing directories');
     const subdirs = getSubdirectories(currentDirectory);
     store.set('directoryList')(subdirs);
   };
