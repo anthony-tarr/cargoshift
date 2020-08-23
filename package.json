@@ -12,7 +12,6 @@
       "datastore.js",
       "electron.js",
       "icons",
-      "src/assets/*",
       "build/**/*"
     ],
     "win": {
@@ -29,6 +28,7 @@
     "react-start": "parcel -p 3000 index.html --dist-dir ./build",
     "react-build": "parcel build index.html --dist-dir ./build --public-url ./",
     "electron-build": "electron-builder",
+    "eb": "npm run electron-build",
     "build": "npm run clean-build && npm run react-build",
     "start": "concurrently \"cross-env BROWSER=none npm run react-start\" \"wait-on http://localhost:3000 && electron . \""
   },
@@ -65,6 +65,7 @@
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-table": "^7.5.0",
+    "regenerator-runtime": "^0.13.7",
     "rimraf": "^3.0.2",
     "styled-components": "^5.1.1",
     "typescript": "^3.9.7",

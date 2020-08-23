@@ -1,3 +1,4 @@
+import 'regenerator-runtime/runtime';
 import React from 'react';
 import styled from 'styled-components';
 import Table from './directory/Table';
@@ -238,7 +239,9 @@ const App = () => {
               <Table />
             </div>
             <FloatingButtons>
-              <Button onClick={createSymlink}>Create link</Button>
+              <Button disabled={store.get('selectedRows').length < 1 || !isRemoveLinkDisabled()} onClick={createSymlink}>
+                Create link
+              </Button>
               <Button disabled={isRemoveLinkDisabled()} onClick={removeSymlink}>
                 Remove link
               </Button>

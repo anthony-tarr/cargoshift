@@ -17,11 +17,11 @@ function createWindow() {
     frame: false,
     webPreferences: {
       nodeIntegration: true,
-      webSecurity: false,
     },
   });
 
-  mainWindow.loadURL(isDev ? 'http://localhost:3000' : `file://${path.join(__dirname, '../build/index.html')}`);
+  const prodPath = path.join(__dirname, '/build/index.html');
+  mainWindow.loadURL(isDev ? 'http://localhost:3000' : prodPath);
   mainWindow.on('closed', () => (mainWindow = null));
 }
 
