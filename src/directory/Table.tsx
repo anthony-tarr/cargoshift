@@ -87,7 +87,7 @@ const Table: React.FC = () => {
         accessor: 'goTo',
       },
       {
-        Header: 'Symlink Path',
+        Header: 'Link Path',
         accessor: 'linkedPath',
       },
     ],
