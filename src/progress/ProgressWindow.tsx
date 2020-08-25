@@ -40,7 +40,17 @@ const Content = styled.div`
 `;
 
 const Operation = styled.div`
-  color: ${(props) => (props.done ? 'red' : 'black')};
+  color: ${(props) => {
+    if (props.done) {
+      return 'green';
+    }
+
+    if (props.inProgress) {
+      return 'yellow';
+    }
+
+    return 'red';
+  }};
 `;
 
 interface IProgressWindowProps {}
@@ -63,7 +73,9 @@ const ProgressWindow: React.FunctionComponent<IProgressWindowProps> = (props) =>
       </Window>
       <Content className={progressContentClassname}>
         {store.get('currentOperations').map((operation) => (
-          <Operation done={operation.done}>{operation.message}</Operation>
+          <Operation inProgress={operation.inProgress} done={operation.done}>
+            {operation.message}
+          </Operation>
         ))}
       </Content>
     </Container>
