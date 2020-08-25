@@ -42,6 +42,7 @@
     "@types/react-dom": "^16.9.8",
     "@types/react-table": "^7.0.22",
     "@types/styled-components": "^5.1.2",
+    "@types/uuid": "^8.3.0",
     "asar": "^3.0.3",
     "concurrently": "^5.3.0",
     "cross-env": "^7.0.2",
@@ -57,11 +58,14 @@
     "@fortawesome/free-regular-svg-icons": "^5.14.0",
     "@fortawesome/free-solid-svg-icons": "^5.14.0",
     "@fortawesome/react-fontawesome": "^0.1.11",
+    "@types/classnames": "^2.2.10",
+    "classnames": "^2.2.6",
     "electron-is-dev": "^1.2.0",
     "fswin": "^3.19.908",
     "get-file-properties": "^1.0.1",
     "nedb": "^1.8.0",
     "path": "^0.12.7",
+    "polished": "^3.6.5",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-table": "^7.5.0",
@@ -69,6 +73,7 @@
     "rimraf": "^3.0.2",
     "styled-components": "^5.1.1",
     "typescript": "^3.9.7",
-    "undux": "^5.2.0"
+    "undux": "^5.2.0",
+    "uuid": "^8.3.0"
   }
 }

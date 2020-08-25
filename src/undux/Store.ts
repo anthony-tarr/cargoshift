@@ -3,6 +3,7 @@ import { createConnectedStore, Effects, Store, createStore, connect } from 'undu
 import { UseTableRowProps } from 'react-table';
 import Datastore from '../database/Datastore';
 import { getSubdirectories } from '../util/directory/DirectoryUtils';
+import { LinkOperation } from '../model/LinkOperation';
 
 export const NO_DIR_MESSAGE = '<select a directory path>';
 
@@ -11,6 +12,7 @@ type State = {
   outputDirectory: string;
   directoryList: DirectoryTreeRow[];
   selectedRows: UseTableRowProps<DirectoryTreeRow>[];
+  currentOperations: LinkOperation[];
 };
 
 const db = new Datastore();
@@ -44,6 +46,7 @@ const initialState: State = {
   outputDirectory: setOutputDirectory(),
   directoryList: setDirectoryList(),
   selectedRows: [],
+  currentOperations: [],
 };
 
 export type StoreProps = {

@@ -9,6 +9,7 @@ import { faEllipsisH } from '@fortawesome/free-solid-svg-icons';
 import TopNav from './navigation/TopNav';
 import { robocopy, removeDirectory, makeLink } from './commands/Commands';
 import './_index.scss';
+import Actions from './main/Actions';
 
 const electron = window.require('electron');
 const { remote } = electron;
@@ -82,37 +83,6 @@ const DirectoryButton = styled.button`
   }
 `;
 
-const Button = styled.button`
-  user-select: none;
-  font-family: 'NotoSans';
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  padding: 12px;
-  border-radius: 4px;
-  color: #eee;
-  background: rgba(255, 255, 255, 0.1);
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.2);
-  }
-
-  &:disabled {
-    pointer-events: none;
-    background: rgba(1, 1, 1, 0.1);
-  }
-`;
-
-const FloatingButtons = styled.div`
-  position: absolute;
-  width: 260px;
-  display: flex;
-  justify-content: space-between;
-  bottom: 25px;
-  right: 25px;
-`;
-
 const Content = styled.div``;
 
 const App = () => {
@@ -154,60 +124,6 @@ const App = () => {
     }
   };
 
-  const createSymlink = async () => {
-    for (const row of store.get('selectedRows')) {
-      const destination = `${outputDirectory}\\${row.original.name}`;
-      console.log('  RUNNING COPY');
-      await robocopy(row.original.path, destination);
-      console.log('  RUNNING RD');
-      await removeDirectory(row.original.path);
-      console.log('  RUNNING MKLINK');
-      await makeLink(row.original.path, destination);
-    }
-
-    console.log('refreshing directories');
-    const subdirs = getSubdirectories(currentDirectory);
-    store.set('directoryList')(subdirs);
-  };
-
-  const removeSymlink = async () => {
-    for (const row of store.get('selectedRows')) {
-      // Remove the symlink directory
-      console.log('  RUNNING RD');
-      await removeDirectory(row.original.path, true);
-
-      // Copy from destination dir back to source
-      console.log(`${outputDirectory}\\${row.original.name}`);
-      console.log('  RUNNING COPY');
-      await robocopy(`${outputDirectory}\\${row.original.name}`, row.original.path);
-
-      // Remove destination dir
-      console.log('  RUNNING RD');
-      await removeDirectory(`${outputDirectory}\\${row.original.name}`);
-    }
-
-    console.log('refreshing directories');
-    const subdirs = getSubdirectories(currentDirectory);
-    store.set('directoryList')(subdirs);
-  };
-
-  const isCreateLinkDisabled = () => {
-    const selectedRows = store.get('selectedRows');
-    const hasLinkedPath = selectedRows.find((row) => row.original.linkedPath !== null);
-    console.log(hasLinkedPath);
-  };
-
-  const isRemoveLinkDisabled = () => {
-    console.log('am i being evaluated');
-    const selectedRows = store.get('selectedRows');
-    const hasLinkedPath = selectedRows.find((row) => row.original.linkedPath !== null);
-    console.log(hasLinkedPath);
-    if (hasLinkedPath) {
-      return false;
-    }
-    return true;
-  };
-
   return (
     <>
       <TopNav />
@@ -238,14 +154,7 @@ const App = () => {
             <div>
               <Table />
             </div>
-            <FloatingButtons>
-              <Button disabled={store.get('selectedRows').length < 1 || !isRemoveLinkDisabled()} onClick={createSymlink}>
-                Create link
-              </Button>
-              <Button disabled={isRemoveLinkDisabled()} onClick={removeSymlink}>
-                Remove link
-              </Button>
-            </FloatingButtons>
+            <Actions />
           </Content>
         </div>
       </Container>
