@@ -61,7 +61,6 @@
     "@types/classnames": "^2.2.10",
     "classnames": "^2.2.6",
     "electron-is-dev": "^1.2.0",
-    "fswin": "^3.19.908",
     "get-file-properties": "^1.0.1",
     "nedb": "^1.8.0",
     "path": "^0.12.7",

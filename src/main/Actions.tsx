@@ -142,7 +142,7 @@ const Actions: React.FunctionComponent<IActionsProps> = (props) => {
   };
 
   const isRemoveLinkDisabled = () => {
-    console.log('am i being evaluated');
+    console.log(store.get('selectedRows'));
     const selectedRows = store.get('selectedRows');
     const hasLinkedPath = selectedRows.find((row) => row.original.linkedPath !== null);
     console.log(hasLinkedPath);

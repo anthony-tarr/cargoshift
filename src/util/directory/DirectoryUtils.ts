@@ -1,6 +1,5 @@
 import { Dirent } from 'fs';
 import { DirectoryTreeRow } from '../../model/DirectoryTreeRow';
-
 const fs = window.require('fs');
 
 export function getSubdirectories(path: string) {
@@ -18,11 +17,15 @@ export function getSubdirectories(path: string) {
 }
 
 const mapColumns = (dir: Dirent, path: string): DirectoryTreeRow => {
+  let finalPath = `${path}\\${dir.name}`;
+  if (path.endsWith('\\')) {
+    finalPath = `${path}${dir.name}`;
+  }
   const isLink = dir.isSymbolicLink();
   return {
     name: dir.name,
     isLink,
     linkedPath: isLink ? fs.readlinkSync(`${path}\\${dir.name}`) : null,
-    path: `${path}${dir.name}`,
+    path: finalPath,
   };
 };
