@@ -80,11 +80,18 @@ const Actions: React.FunctionComponent<IActionsProps> = (props) => {
   };
 
   const createSymlink = async () => {
-    for (const row of store.get('selectedRows')) {
+    const rawTotalOperations = store.get('selectedRows').map((row) => {
       const executionId: string = uuid.v4();
-      const operations: LinkOperation[] = getOperations(row, executionId);
+      return getOperations(row, executionId);
+    });
 
-      store.set('currentOperations')([...store.get('currentOperations'), ...operations]);
+    const totalOperations: LinkOperation[] = ([] as LinkOperation[]).concat(...rawTotalOperations);
+    store.set('currentOperations')([...store.get('currentOperations'), ...totalOperations]);
+
+    for (const row of store.get('selectedRows')) {
+      const operations: LinkOperation[] = totalOperations;
+
+      //store.set('currentOperations')([...store.get('currentOperations'), ...operations]);
 
       const destination = `${outputDirectory}\\${row.original.name}`;
 
