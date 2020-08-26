@@ -68,6 +68,8 @@ const effects: Effects<State> = (store) => {
     console.log('subscription', dir[0]);
   });
 
+  store.on('currentOperations').subscribe((operations) => {});
+
   return store;
 };
 

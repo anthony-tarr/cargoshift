@@ -70,6 +70,7 @@
     "react-table": "^7.5.0",
     "regenerator-runtime": "^0.13.7",
     "rimraf": "^3.0.2",
+    "rxjs": "^6.6.2",
     "styled-components": "^5.1.1",
     "typescript": "^3.9.7",
     "undux": "^5.2.0",
