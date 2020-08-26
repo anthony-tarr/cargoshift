@@ -14,6 +14,7 @@ const StyledActions = styled.div`
   width: 260px;
   bottom: 25px;
   right: 25px;
+  z-index: 3;
 `;
 
 const Button = styled.button`
@@ -41,6 +42,7 @@ const Button = styled.button`
 const FloatingButtons = styled.div`
   display: flex;
   justify-content: space-between;
+  z-index: 2;
 `;
 
 interface IActionsProps {}
@@ -86,12 +88,15 @@ const Actions: React.FunctionComponent<IActionsProps> = (props) => {
 
       const destination = `${outputDirectory}\\${row.original.name}`;
 
+      // Copy directory over
       console.log('  RUNNING COPY');
       const copyExecution = operations.find((row) => row.id === executionId && row.type === LinkOperationType.COPY);
       copyExecution!!.inProgress = true;
       await robocopy(row.original.path, destination);
       copyExecution!!.done = true;
+      store.set('currentOperations')([...store.get('currentOperations'), ...operations]);
 
+      // Remove directory
       console.log('  RUNNING RD');
       const rdExecution = operations.find(
         (row) => row.id === executionId && row.type === LinkOperationType.REMOVE_DIRECTORY
@@ -99,7 +104,9 @@ const Actions: React.FunctionComponent<IActionsProps> = (props) => {
       rdExecution!!.inProgress = true;
       await removeDirectory(row.original.path);
       rdExecution!!.done = true;
+      store.set('currentOperations')([...store.get('currentOperations'), ...operations]);
 
+      // Make link
       console.log('  RUNNING MKLINK');
       const mkLinkExecution = operations.find(
         (row) => row.id === executionId && row.type === LinkOperationType.MAKE_LINK
@@ -107,11 +114,17 @@ const Actions: React.FunctionComponent<IActionsProps> = (props) => {
       mkLinkExecution!!.inProgress = true;
       await makeLink(row.original.path, destination);
       mkLinkExecution!!.done = true;
+
+      store.set('currentOperations')([...store.get('currentOperations'), ...operations]);
     }
 
     console.log('refreshing directories');
     const subdirs = getSubdirectories(currentDirectory);
     store.set('directoryList')(subdirs);
+  };
+
+  const sleep = (ms: number) => {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   };
 
   const removeSymlink = async () => {

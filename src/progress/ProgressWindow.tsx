@@ -8,6 +8,7 @@ import Store from '../undux/Store';
 
 const Container = styled.div`
   margin: 10px 0;
+  z-index: 1;
 `;
 
 const Window = styled.div`
@@ -55,12 +56,11 @@ const Operation = styled.div`
 
 interface IProgressWindowProps {}
 
-const ProgressWindow: React.FunctionComponent<IProgressWindowProps> = (props) => {
+const ProgressWindow: React.FC<IProgressWindowProps> = () => {
   const store = Store.useStore();
 
   const [contentWindowToggled, setContentWindowToggled] = React.useState(false);
   const toggleContentWindow = () => {
-    console.log(contentWindowToggled);
     setContentWindowToggled(!contentWindowToggled);
   };
 
@@ -72,11 +72,13 @@ const ProgressWindow: React.FunctionComponent<IProgressWindowProps> = (props) =>
         <FontAwesomeIcon icon={icon} />
       </Window>
       <Content className={progressContentClassname}>
-        {store.get('currentOperations').map((operation) => (
-          <Operation inProgress={operation.inProgress} done={operation.done}>
-            {operation.message}
-          </Operation>
-        ))}
+        {store.get('currentOperations').map((operation) => {
+          return (
+            <Operation inProgress={operation.inProgress} done={operation.done}>
+              {operation.message}
+            </Operation>
+          );
+        })}
       </Content>
     </Container>
   );
