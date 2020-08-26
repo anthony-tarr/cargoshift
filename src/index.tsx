@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
 import Store from './undux/Store';
+import { RecoilRoot } from 'recoil';
 
 const remote = window.require('electron').remote;
 const win = remote.getCurrentWindow();
@@ -52,8 +53,10 @@ function handleWindowControls() {
 }
 
 ReactDOM.render(
-  <Store.Container>
-    <App />
-  </Store.Container>,
+  <RecoilRoot>
+    <Store.Container>
+      <App />
+    </Store.Container>
+  </RecoilRoot>,
   document.getElementById('root')
 );

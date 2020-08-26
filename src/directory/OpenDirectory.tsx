@@ -1,10 +1,11 @@
 import * as React from 'react';
 import { DirectoryTreeRow } from '../model/DirectoryTreeRow';
 import { getSubdirectories } from '../util/directory/DirectoryUtils';
-import Store from '../undux/Store';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFolderOpen } from '@fortawesome/free-solid-svg-icons';
 import styled from 'styled-components';
+import { useRecoilState } from 'recoil';
+import { currentDirectoryState, outputDirectoryState, directoryListState } from '../recoil/Recoil';
 
 interface IOpenDirectoryProps {
   directory: DirectoryTreeRow;
@@ -19,12 +20,13 @@ const StyledOpenDirectory = styled.div`
 `;
 
 const OpenDirectory: React.FunctionComponent<IOpenDirectoryProps> = (props) => {
-  const store = Store.useStore();
+  const [currentDirectory, setCurrentDirectory] = useRecoilState(currentDirectoryState);
+  const [directoryList, setDirectoryList] = useRecoilState(directoryListState);
 
   const openDirectory = () => {
     const subdirs = getSubdirectories(props.directory.path);
-    store.set('directoryList')(subdirs);
-    store.set('currentDirectory')(props.directory.path);
+    setDirectoryList(subdirs);
+    setCurrentDirectory(props.directory.path);
   };
 
   return (

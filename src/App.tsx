@@ -2,14 +2,14 @@ import 'regenerator-runtime/runtime';
 import React from 'react';
 import styled from 'styled-components';
 import Table from './directory/Table';
-import Store from './undux/Store';
 import { getSubdirectories } from './util/directory/DirectoryUtils';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEllipsisH } from '@fortawesome/free-solid-svg-icons';
 import TopNav from './navigation/TopNav';
-import { robocopy, removeDirectory, makeLink } from './commands/Commands';
-import './_index.scss';
 import Actions from './main/Actions';
+import { useRecoilState } from 'recoil';
+import { currentDirectoryState, outputDirectoryState, directoryListState } from './recoil/Recoil';
+import './_index.scss';
 
 const electron = window.require('electron');
 const { remote } = electron;
@@ -86,10 +86,9 @@ const DirectoryButton = styled.button`
 const Content = styled.div``;
 
 const App = () => {
-  const store = Store.useStore();
-
-  const currentDirectory = store.get('currentDirectory');
-  const outputDirectory = store.get('outputDirectory');
+  const [currentDirectory, setCurrentDirectory] = useRecoilState(currentDirectoryState);
+  const [outputDirectory, setOutputDirectory] = useRecoilState(outputDirectoryState);
+  const [directoryList, setDirectoryList] = useRecoilState(directoryListState);
 
   const handleDirectoryOpen = async () => {
     const res = await remote.dialog.showOpenDialog({
@@ -104,8 +103,8 @@ const App = () => {
     if (filePaths) {
       const path = filePaths[0];
       const subdirs = getSubdirectories(path);
-      store.set('directoryList')(subdirs);
-      store.set('currentDirectory')(path);
+      setDirectoryList(subdirs);
+      setCurrentDirectory(path);
     }
   };
 
@@ -120,7 +119,7 @@ const App = () => {
 
     const filePaths = res.filePaths;
     if (filePaths) {
-      store.set('outputDirectory')(filePaths);
+      setOutputDirectory(filePaths);
     }
   };
 

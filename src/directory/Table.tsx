@@ -1,11 +1,12 @@
 import * as React from 'react';
 import { useTable, useRowSelect, UseRowSelectRowProps } from 'react-table';
 import { useMemo } from 'react';
-import Store from '../undux/Store';
 import { DirectoryTreeRow } from '../model/DirectoryTreeRow';
 import styled from 'styled-components';
 import OpenDirectory from './OpenDirectory';
 import { getSubdirectories } from '../util/directory/DirectoryUtils';
+import { selectedRowsState, directoryListState, currentDirectoryState } from '../recoil/Recoil';
+import { useRecoilState } from 'recoil';
 
 const RowHover = styled.td`
   background: black;
@@ -60,10 +61,10 @@ const TableRow = styled.tr`
 `;
 
 const Table: React.FC = () => {
-  const store = Store.useStore();
   const [hoveredRow, setHoveredRow] = React.useState<number>();
-
-  const directoryList = store.get('directoryList');
+  const [selectedRows, setSelectedRows] = useRecoilState(selectedRowsState);
+  const [directoryList, setDirectoryList] = useRecoilState<any>(directoryListState);
+  const [currentDirectory, setCurrentDirectory] = useRecoilState<string>(currentDirectoryState);
 
   const data = useMemo(
     () =>
@@ -103,7 +104,7 @@ const Table: React.FC = () => {
   ) as any;
 
   React.useEffect(() => {
-    store.set('selectedRows')(selectedFlatRows);
+    setSelectedRows(selectedFlatRows);
   }, [selectedFlatRows]);
 
   const selectRow = (row: UseRowSelectRowProps<DirectoryTreeRow>) => {
@@ -119,16 +120,16 @@ const Table: React.FC = () => {
   };
 
   const navigateToParent = () => {
-    const split = store.get('currentDirectory').split('\\');
+    const split = currentDirectory.split('\\');
     split.pop();
     const path = `${split.join('\\')}\\`;
     const subdirs = getSubdirectories(path);
-    store.set('directoryList')(subdirs);
-    store.set('currentDirectory')(path);
+    setDirectoryList(subdirs);
+    setCurrentDirectory(path);
   };
 
   const renderNavigateToParent = () => {
-    const split = store.get('currentDirectory').split('\\');
+    const split = currentDirectory.split('\\');
     const noParent = split.length < 2 || (split.length === 2 && split[1].trim() === '');
 
     if (!noParent)
@@ -156,7 +157,7 @@ const Table: React.FC = () => {
       </thead>
       <tbody {...getTableBodyProps()}>
         {renderNavigateToParent()}
-        {rows.map((row: Row & UseRowSelectRowProps<DirectoryTreeRow>) => {
+        {rows.map((row: any & UseRowSelectRowProps<DirectoryTreeRow>) => {
           prepareRow(row);
           return (
             <TableRow selected={row.isSelected} onClick={() => selectRow(row)} {...row.getRowProps()}>

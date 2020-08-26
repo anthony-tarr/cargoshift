@@ -1,6 +1,5 @@
 import * as React from 'react';
 import styled from 'styled-components';
-import Store from '../undux/Store';
 import { robocopy, removeDirectory, makeLink } from '../commands/Commands';
 import { getSubdirectories } from '../util/directory/DirectoryUtils';
 import ProgressWindow from '../progress/ProgressWindow';
@@ -9,6 +8,14 @@ import * as uuid from 'uuid';
 import { UseTableRowProps } from 'react-table';
 import { DirectoryTreeRow } from '../model/DirectoryTreeRow';
 import { subject } from './OperationHandler';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
+import {
+  currentDirectoryState,
+  outputDirectoryState,
+  selectedRowsState,
+  currentOperationsState,
+} from '../recoil/Recoil';
+import { useRecoilState } from 'recoil';
 
 const StyledActions = styled.div`
   position: absolute;
@@ -49,10 +56,10 @@ const FloatingButtons = styled.div`
 interface IActionsProps {}
 
 const Actions: React.FunctionComponent<IActionsProps> = () => {
-  const store = Store.useStore();
-
-  const currentDirectory = store.get('currentDirectory');
-  const outputDirectory = store.get('outputDirectory');
+  const currentDirectory = useRecoilValue(currentDirectoryState);
+  const outputDirectory = useRecoilValue(outputDirectoryState);
+  const selectedRows = useRecoilValue(selectedRowsState);
+  const [currentOperations, setCurrentOperations] = useRecoilState<LinkOperation[]>(currentOperationsState);
 
   const getExecutionOperation = (
     row: UseTableRowProps<DirectoryTreeRow>,
@@ -90,20 +97,20 @@ const Actions: React.FunctionComponent<IActionsProps> = () => {
   };
 
   const createSymlink = async () => {
-    const rawTotalOperations: LinkOperation[] = store.get('selectedRows').map((row) => {
+    const rawTotalOperations: LinkOperation[] = selectedRows.map((row) => {
       const executionId: string = uuid.v4();
       return getExecutionOperation(row, executionId, row.original.path, `${outputDirectory}\\${row.original.name}`);
     });
 
     console.log('RAW TOTAL OPERATIONS', rawTotalOperations);
     subject.next(rawTotalOperations[0]);
+    setCurrentOperations((oldCurrentOperations: LinkOperation[]) => [...oldCurrentOperations, ...rawTotalOperations]);
 
     // Recieve an array of operations to execute
     // Send to our store
     // Use RXJS to configure max concurrency with mergeMap
 
-    const totalOperations: LinkOperation[] = ([] as LinkOperation[]).concat(...rawTotalOperations);
-    store.set('currentOperations')([...store.get('currentOperations'), ...totalOperations]);
+    // const totalOperations: LinkOperation[] = ([] as LinkOperation[]).concat(...rawTotalOperations);
 
     // for (const operationList of rawTotalOperations) {
     //   for (const operation in operationList) {
@@ -175,35 +182,24 @@ const Actions: React.FunctionComponent<IActionsProps> = () => {
   };
 
   const removeSymlink = async () => {
-    for (const row of store.get('selectedRows')) {
-      // Remove the symlink directory
-      console.log('  RUNNING RD');
-      await removeDirectory(row.original.path, true);
-
-      // Copy from destination dir back to source
-      console.log(`${outputDirectory}\\${row.original.name}`);
-      console.log('  RUNNING COPY');
-      await robocopy(`${outputDirectory}\\${row.original.name}`, row.original.path);
-
-      // Remove destination dir
-      console.log('  RUNNING RD');
-      await removeDirectory(`${outputDirectory}\\${row.original.name}`);
-    }
-
-    console.log('refreshing directories');
-    const subdirs = getSubdirectories(currentDirectory);
-    store.set('directoryList')(subdirs);
-  };
-
-  const isCreateLinkDisabled = () => {
-    const selectedRows = store.get('selectedRows');
-    const hasLinkedPath = selectedRows.find((row) => row.original.linkedPath !== null);
-    console.log(hasLinkedPath);
+    // for (const row of selectedRows) {
+    //   // Remove the symlink directory
+    //   console.log('  RUNNING RD');
+    //   await removeDirectory(row.original.path, true);
+    //   // Copy from destination dir back to source
+    //   console.log(`${outputDirectory}\\${row.original.name}`);
+    //   console.log('  RUNNING COPY');
+    //   await robocopy(`${outputDirectory}\\${row.original.name}`, row.original.path);
+    //   // Remove destination dir
+    //   console.log('  RUNNING RD');
+    //   await removeDirectory(`${outputDirectory}\\${row.original.name}`);
+    // }
+    // console.log('refreshing directories');
+    // const subdirs = getSubdirectories(currentDirectory);
+    // store.set('directoryList')(subdirs);
   };
 
   const isRemoveLinkDisabled = () => {
-    console.log(store.get('selectedRows'));
-    const selectedRows = store.get('selectedRows');
     const hasLinkedPath = selectedRows.find((row) => row.original.linkedPath !== null);
     console.log(hasLinkedPath);
     if (hasLinkedPath) {
@@ -216,7 +212,7 @@ const Actions: React.FunctionComponent<IActionsProps> = () => {
     <StyledActions>
       <ProgressWindow />
       <FloatingButtons>
-        <Button disabled={store.get('selectedRows').length < 1 || !isRemoveLinkDisabled()} onClick={createSymlink}>
+        <Button disabled={selectedRows.length < 1 || !isRemoveLinkDisabled()} onClick={createSymlink}>
           Create link
         </Button>
         <Button disabled={isRemoveLinkDisabled()} onClick={removeSymlink}>
