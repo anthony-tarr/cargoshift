@@ -8,6 +8,7 @@ import { LinkOperation, LinkOperationType } from '../model/LinkOperation';
 import * as uuid from 'uuid';
 import { UseTableRowProps } from 'react-table';
 import { DirectoryTreeRow } from '../model/DirectoryTreeRow';
+import { subject } from './OperationHandler';
 
 const StyledActions = styled.div`
   position: absolute;
@@ -47,7 +48,7 @@ const FloatingButtons = styled.div`
 
 interface IActionsProps {}
 
-const Actions: React.FunctionComponent<IActionsProps> = (props) => {
+const Actions: React.FunctionComponent<IActionsProps> = () => {
   const store = Store.useStore();
 
   const currentDirectory = store.get('currentDirectory');
@@ -89,10 +90,13 @@ const Actions: React.FunctionComponent<IActionsProps> = (props) => {
   };
 
   const createSymlink = async () => {
-    const rawTotalOperations = store.get('selectedRows').map((row) => {
+    const rawTotalOperations: LinkOperation[] = store.get('selectedRows').map((row) => {
       const executionId: string = uuid.v4();
       return getExecutionOperation(row, executionId, row.original.path, `${outputDirectory}\\${row.original.name}`);
     });
+
+    console.log('RAW TOTAL OPERATIONS', rawTotalOperations);
+    subject.next(rawTotalOperations[0]);
 
     // Recieve an array of operations to execute
     // Send to our store
@@ -168,10 +172,6 @@ const Actions: React.FunctionComponent<IActionsProps> = (props) => {
     // console.log('refreshing directories');
     // const subdirs = getSubdirectories(currentDirectory);
     // store.set('directoryList')(subdirs);
-  };
-
-  const sleep = (ms: number) => {
-    return new Promise((resolve) => setTimeout(resolve, ms));
   };
 
   const removeSymlink = async () => {
