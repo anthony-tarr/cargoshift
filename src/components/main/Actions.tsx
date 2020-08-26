@@ -1,21 +1,21 @@
 import * as React from 'react';
 import styled from 'styled-components';
-import { robocopy, removeDirectory, makeLink } from '../commands/Commands';
-import { getSubdirectories } from '../util/directory/DirectoryUtils';
-import ProgressWindow from '../progress/ProgressWindow';
-import { LinkOperation, LinkOperationType } from '../model/LinkOperation';
+import { robocopy, removeDirectory, makeLink } from '../../commands/Commands';
+import { getSubdirectories } from '../../util/directory/DirectoryUtils';
+import { LinkOperation, LinkOperationType } from '../../model/LinkOperation';
 import * as uuid from 'uuid';
 import { UseTableRowProps } from 'react-table';
-import { DirectoryTreeRow } from '../model/DirectoryTreeRow';
-import { subject } from './OperationHandler';
+import { DirectoryTreeRow } from '../../model/DirectoryTreeRow';
+import { subject } from '../../OperationHandler';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import {
   currentDirectoryState,
   outputDirectoryState,
   selectedRowsState,
   currentOperationsState,
-} from '../recoil/Recoil';
+} from '../../recoil/Recoil';
 import { useRecoilState } from 'recoil';
+import ProgressWindow from '../progress/ProgressWindow';
 
 const StyledActions = styled.div`
   position: absolute;
@@ -97,14 +97,13 @@ const Actions: React.FunctionComponent<IActionsProps> = () => {
   };
 
   const createSymlink = async () => {
-    const rawTotalOperations: LinkOperation[] = selectedRows.map((row) => {
+    const rawTotalOperations: LinkOperation[] = selectedRows.map((row: UseTableRowProps<DirectoryTreeRow>) => {
       const executionId: string = uuid.v4();
       return getExecutionOperation(row, executionId, row.original.path, `${outputDirectory}\\${row.original.name}`);
     });
 
     console.log('RAW TOTAL OPERATIONS', rawTotalOperations);
-    subject.next(rawTotalOperations[0]);
-    setCurrentOperations((oldCurrentOperations: LinkOperation[]) => [...oldCurrentOperations, ...rawTotalOperations]);
+    rawTotalOperations.forEach((op) => subject.next(op));
 
     // Recieve an array of operations to execute
     // Send to our store
@@ -200,8 +199,9 @@ const Actions: React.FunctionComponent<IActionsProps> = () => {
   };
 
   const isRemoveLinkDisabled = () => {
-    const hasLinkedPath = selectedRows.find((row) => row.original.linkedPath !== null);
-    console.log(hasLinkedPath);
+    const hasLinkedPath = selectedRows.find(
+      (row: UseTableRowProps<DirectoryTreeRow>) => row.original.linkedPath !== null
+    );
     if (hasLinkedPath) {
       return false;
     }

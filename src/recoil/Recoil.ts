@@ -46,7 +46,7 @@ export const directoryListState = atom({
   default: setDirectoryList(),
 });
 
-export const selectedRowsState = atom({
+export const selectedRowsState = atom<any>({
   key: 'selectedRowsState',
   default: [],
 });

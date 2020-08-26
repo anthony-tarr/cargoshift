@@ -4,7 +4,8 @@ import classnames from 'classnames';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronUp, faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import { lighten } from 'polished';
-import Store from '../undux/Store';
+import { useRecoilValue } from 'recoil';
+import { currentOperationsState } from '../../recoil/Recoil';
 
 const Container = styled.div`
   margin: 10px 0;
@@ -41,7 +42,7 @@ const Content = styled.div`
 `;
 
 const Operation = styled.div`
-  color: ${(props) => {
+  color: ${(props: { done: boolean; inProgress: boolean }) => {
     if (props.done) {
       return 'green';
     }
@@ -57,12 +58,14 @@ const Operation = styled.div`
 interface IProgressWindowProps {}
 
 const ProgressWindow: React.FC<IProgressWindowProps> = () => {
-  const store = Store.useStore();
+  const currentOperations = useRecoilValue(currentOperationsState);
 
   const [contentWindowToggled, setContentWindowToggled] = React.useState(false);
   const toggleContentWindow = () => {
     setContentWindowToggled(!contentWindowToggled);
   };
+
+  console.log(currentOperations);
 
   const icon = contentWindowToggled ? faChevronDown : faChevronUp;
   const progressContentClassname = classnames('progress-content', { toggled: contentWindowToggled });
@@ -72,13 +75,13 @@ const ProgressWindow: React.FC<IProgressWindowProps> = () => {
         <FontAwesomeIcon icon={icon} />
       </Window>
       <Content className={progressContentClassname}>
-        {store.get('currentOperations').map((operation) => {
-          return (
-            <Operation inProgress={operation.inProgress} done={operation.done}>
-              {operation.message}
-            </Operation>
-          );
-        })}
+        {currentOperations.map((operation) =>
+          operation.jobs.map((job) => {
+            <Operation inProgress={job.inProgress} done={job.done}>
+              {job.message}
+            </Operation>;
+          })
+        )}
       </Content>
     </Container>
   );

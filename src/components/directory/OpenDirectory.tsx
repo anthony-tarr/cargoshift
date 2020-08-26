@@ -1,11 +1,11 @@
 import * as React from 'react';
-import { DirectoryTreeRow } from '../model/DirectoryTreeRow';
-import { getSubdirectories } from '../util/directory/DirectoryUtils';
+import { DirectoryTreeRow } from '../../model/DirectoryTreeRow';
+import { getSubdirectories } from '../../util/directory/DirectoryUtils';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFolderOpen } from '@fortawesome/free-solid-svg-icons';
 import styled from 'styled-components';
 import { useRecoilState } from 'recoil';
-import { currentDirectoryState, outputDirectoryState, directoryListState } from '../recoil/Recoil';
+import { currentDirectoryState, outputDirectoryState, directoryListState } from '../../recoil/Recoil';
 
 interface IOpenDirectoryProps {
   directory: DirectoryTreeRow;

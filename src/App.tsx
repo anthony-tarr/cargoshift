@@ -1,15 +1,16 @@
 import 'regenerator-runtime/runtime';
 import React from 'react';
 import styled from 'styled-components';
-import Table from './directory/Table';
+import Table from './components/directory/Table';
 import { getSubdirectories } from './util/directory/DirectoryUtils';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEllipsisH } from '@fortawesome/free-solid-svg-icons';
-import TopNav from './navigation/TopNav';
-import Actions from './main/Actions';
+import TopNav from './components/navigation/TopNav';
+import Actions from './components/main/Actions';
 import { useRecoilState } from 'recoil';
 import { currentDirectoryState, outputDirectoryState, directoryListState } from './recoil/Recoil';
 import './_index.scss';
+import { useSetRecoilState } from 'recoil';
 
 const electron = window.require('electron');
 const { remote } = electron;
@@ -88,7 +89,7 @@ const Content = styled.div``;
 const App = () => {
   const [currentDirectory, setCurrentDirectory] = useRecoilState(currentDirectoryState);
   const [outputDirectory, setOutputDirectory] = useRecoilState(outputDirectoryState);
-  const [directoryList, setDirectoryList] = useRecoilState(directoryListState);
+  const setDirectoryList = useSetRecoilState(directoryListState);
 
   const handleDirectoryOpen = async () => {
     const res = await remote.dialog.showOpenDialog({

@@ -1,12 +1,12 @@
 import * as React from 'react';
-import { useTable, useRowSelect, UseRowSelectRowProps } from 'react-table';
+import { useTable, useRowSelect, UseRowSelectRowProps, TableRow as TableRowType } from 'react-table';
 import { useMemo } from 'react';
-import { DirectoryTreeRow } from '../model/DirectoryTreeRow';
+import { DirectoryTreeRow } from '../../model/DirectoryTreeRow';
 import styled from 'styled-components';
 import OpenDirectory from './OpenDirectory';
-import { getSubdirectories } from '../util/directory/DirectoryUtils';
-import { selectedRowsState, directoryListState, currentDirectoryState } from '../recoil/Recoil';
-import { useRecoilState } from 'recoil';
+import { getSubdirectories } from '../../util/directory/DirectoryUtils';
+import { selectedRowsState, directoryListState, currentDirectoryState } from '../../recoil/Recoil';
+import { useRecoilState, useSetRecoilState, constSelector } from 'recoil';
 
 const RowHover = styled.td`
   background: black;
@@ -40,7 +40,7 @@ const StyledTable = styled.table`
   border-collapse: collapse;
 `;
 
-const TableRow = styled.tr`
+const TableRow = styled.tr<{ selected: boolean }>`
   color: ${(props) => (props.selected ? '#fff' : '#eee')};
   background: ${(props) => (props.selected ? 'rgba(0, 0, 0, 0.5)' : 'transparent')};
   height: 24px;
@@ -61,14 +61,13 @@ const TableRow = styled.tr`
 `;
 
 const Table: React.FC = () => {
-  const [hoveredRow, setHoveredRow] = React.useState<number>();
-  const [selectedRows, setSelectedRows] = useRecoilState(selectedRowsState);
+  const setSelectedRows = useSetRecoilState(selectedRowsState);
   const [directoryList, setDirectoryList] = useRecoilState<any>(directoryListState);
   const [currentDirectory, setCurrentDirectory] = useRecoilState<string>(currentDirectoryState);
 
   const data = useMemo(
     () =>
-      directoryList.map((directory) => ({
+      directoryList.map((directory: DirectoryTreeRow) => ({
         name: directory.name,
         goTo: <OpenDirectory directory={directory} />,
         linkedPath: directory.linkedPath,
@@ -104,23 +103,27 @@ const Table: React.FC = () => {
   ) as any;
 
   React.useEffect(() => {
-    setSelectedRows(selectedFlatRows);
+    const selectedRows = selectedFlatRows.map(
+      (row: TableRowType<DirectoryTreeRow> & UseRowSelectRowProps<DirectoryTreeRow>) => ({
+        id: row.id,
+        index: row.index,
+        isSelected: row.isSelected,
+        original: row.original,
+        values: row.values,
+      })
+    );
+    setSelectedRows(selectedRows);
   }, [selectedFlatRows]);
 
-  const selectRow = (row: UseRowSelectRowProps<DirectoryTreeRow>) => {
-    row.toggleRowSelected();
-  };
-
-  const onRowHover = (row: Row) => {
-    setHoveredRow(row.index);
-  };
-
-  const onTableLeave = (row) => {
-    setHoveredRow(undefined);
-  };
+  const selectRow = (row: UseRowSelectRowProps<DirectoryTreeRow>) => row.toggleRowSelected();
 
   const navigateToParent = () => {
-    const split = currentDirectory.split('\\');
+    // Remove trailing slash
+    let workingDirectory = currentDirectory.trim();
+    if (workingDirectory.endsWith('\\')) {
+      workingDirectory = workingDirectory.slice(0, -1);
+    }
+    const split = workingDirectory.split('\\');
     split.pop();
     const path = `${split.join('\\')}\\`;
     const subdirs = getSubdirectories(path);
