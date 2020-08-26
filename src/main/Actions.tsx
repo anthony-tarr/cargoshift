@@ -84,8 +84,8 @@ const Actions: React.FunctionComponent<IActionsProps> = (props) => {
           message: `Creating link from ${row.original.name} to ${outputDirectory}`,
           type: LinkOperationType.MAKE_LINK,
         },
-      ]
-    }
+      ],
+    };
   };
 
   const createSymlink = async () => {
@@ -94,81 +94,80 @@ const Actions: React.FunctionComponent<IActionsProps> = (props) => {
       return getExecutionOperation(row, executionId, row.original.path, `${outputDirectory}\\${row.original.name}`);
     });
 
-    // Recieve an array of operations to execute 
+    // Recieve an array of operations to execute
     // Send to our store
     // Use RXJS to configure max concurrency with mergeMap
-
 
     const totalOperations: LinkOperation[] = ([] as LinkOperation[]).concat(...rawTotalOperations);
     store.set('currentOperations')([...store.get('currentOperations'), ...totalOperations]);
 
-    for (const operationList of rawTotalOperations) {
-      for (const operation in operationList) {
-        const destination = `${outputDirectory}\\${row.original.name}`;
+    // for (const operationList of rawTotalOperations) {
+    //   for (const operation in operationList) {
+    //     const destination = `${outputDirectory}\\${row.original.name}`;
 
-        // Copy directory over
-        console.log('  RUNNING COPY');
-        const copyExecution = operationList.find((row) => row.id === operation. && row.type === LinkOperationType.COPY);
-        copyExecution!!.inProgress = true;
-        await robocopy(row.original.path, destination);
-        copyExecution!!.done = true;
-        store.set('currentOperations')([...store.get('currentOperations'), ...operations]);
+    //     // Copy directory over
+    //     console.log('  RUNNING COPY');
+    //     const copyExecution = operationList.find((row) => row.id === operation. && row.type === LinkOperationType.COPY);
+    //     copyExecution!!.inProgress = true;
+    //     await robocopy(row.original.path, destination);
+    //     copyExecution!!.done = true;
+    //     store.set('currentOperations')([...store.get('currentOperations'), ...operations]);
 
-        // Remove directory
-        console.log('  RUNNING RD');
-        const rdExecution = operations.find(
-          (row) => row.id === executionId && row.type === LinkOperationType.REMOVE_DIRECTORY
-        );
-        rdExecution!!.inProgress = true;
-        await removeDirectory(row.original.path);
-        rdExecution!!.done = true;
-        store.set('currentOperations')([...store.get('currentOperations'), ...operations]);
+    //     // Remove directory
+    //     console.log('  RUNNING RD');
+    //     const rdExecution = operations.find(
+    //       (row) => row.id === executionId && row.type === LinkOperationType.REMOVE_DIRECTORY
+    //     );
+    //     rdExecution!!.inProgress = true;
+    //     await removeDirectory(row.original.path);
+    //     rdExecution!!.done = true;
+    //     store.set('currentOperations')([...store.get('currentOperations'), ...operations]);
 
-        // Make link
-        console.log('  RUNNING MKLINK');
-        const mkLinkExecution = operations.find(
-          (row) => row.id === executionId && row.type === LinkOperationType.MAKE_LINK
-        );
-        mkLinkExecution!!.inProgress = true;
-        await makeLink(row.original.path, destination);
-        mkLinkExecution!!.done = true;
+    //     // Make link
+    //     console.log('  RUNNING MKLINK');
+    //     const mkLinkExecution = operations.find(
+    //       (row) => row.id === executionId && row.type === LinkOperationType.MAKE_LINK
+    //     );
+    //     mkLinkExecution!!.inProgress = true;
+    //     await makeLink(row.original.path, destination);
+    //     mkLinkExecution!!.done = true;
 
-        store.set('currentOperations')([...store.get('currentOperations'), ...operations]);
-      }
+    //     store.set('currentOperations')([...store.get('currentOperations'), ...operations]);
+    //   }
 
-      // Copy directory over
-      console.log('  RUNNING COPY');
-      const copyExecution = operations.find((row) => row.id === executionId && row.type === LinkOperationType.COPY);
-      copyExecution!!.inProgress = true;
-      await robocopy(row.original.path, destination);
-      copyExecution!!.done = true;
-      store.set('currentOperations')([...store.get('currentOperations'), ...operations]);
+    //   // Copy directory over
+    //   console.log('  RUNNING COPY');
+    //   const copyExecution = operations.find((row) => row.id === executionId && row.type === LinkOperationType.COPY);
+    //   copyExecution!!.inProgress = true;
+    //   await robocopy(row.original.path, destination);
+    //   copyExecution!!.done = true;
+    //   store.set('currentOperations')([...store.get('currentOperations'), ...operations]);
 
-      // Remove directory
-      console.log('  RUNNING RD');
-      const rdExecution = operations.find(
-        (row) => row.id === executionId && row.type === LinkOperationType.REMOVE_DIRECTORY
-      );
-      rdExecution!!.inProgress = true;
-      await removeDirectory(row.original.path);
-      rdExecution!!.done = true;
-      store.set('currentOperations')([...store.get('currentOperations'), ...operations]);
+    //   // Remove directory
+    //   console.log('  RUNNING RD');
+    //   const rdExecution = operations.find(
+    //     (row) => row.id === executionId && row.type === LinkOperationType.REMOVE_DIRECTORY
+    //   );
+    //   rdExecution!!.inProgress = true;
+    //   await removeDirectory(row.original.path);
+    //   rdExecution!!.done = true;
+    //   store.set('currentOperations')([...store.get('currentOperations'), ...operations]);
 
-      // Make link
-      console.log('  RUNNING MKLINK');
-      const mkLinkExecution = operations.find(
-        (row) => row.id === executionId && row.type === LinkOperationType.MAKE_LINK
-      );
-      mkLinkExecution!!.inProgress = true;
-      await makeLink(row.original.path, destination);
-      mkLinkExecution!!.done = true;
+    //   // Make link
+    //   console.log('  RUNNING MKLINK');
+    //   const mkLinkExecution = operations.find(
+    //     (row) => row.id === executionId && row.type === LinkOperationType.MAKE_LINK
+    //   );
+    //   mkLinkExecution!!.inProgress = true;
+    //   await makeLink(row.original.path, destination);
+    //   mkLinkExecution!!.done = true;
 
-      store.set('currentOperations')([...store.get('currentOperations'), ...operations]);
-    }
+    //   store.set('currentOperations')([...store.get('currentOperations'), ...operations]);
+    // }
 
-    console.log('refreshing directories');
-    const subdirs = getSubdirectories(currentDirectory);
-    store.set('directoryList')(subdirs);
+    // console.log('refreshing directories');
+    // const subdirs = getSubdirectories(currentDirectory);
+    // store.set('directoryList')(subdirs);
   };
 
   const sleep = (ms: number) => {
