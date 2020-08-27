@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { currentOperationsState } from '../../recoil/Recoil';
+import { currentOperationsState, currentDirectoryState, directoryListState } from '../../recoil/Recoil';
 import { useRecoilState } from 'recoil';
 import { subject } from '../../OperationHandler';
 import { mergeMap, first, debounce, delay, tap, map } from 'rxjs/operators';
@@ -7,7 +7,8 @@ import { interval, from } from 'rxjs';
 import { useSetRecoilState } from 'recoil';
 import { LinkOperation, LinkOperationType } from '../../model/LinkOperation';
 import produce from 'immer';
-import { robocopy } from '../../commands/Commands';
+import { robocopy, removeDirectory, makeLink } from '../../commands/Commands';
+import { getSubdirectories } from '../../util/directory/DirectoryUtils';
 
 interface IExecutionSubscriberProps {}
 
@@ -22,8 +23,20 @@ function removeItemAtIndex(arr, index) {
 }
 
 const ExecutionSubscriber: React.FunctionComponent<IExecutionSubscriberProps> = (props) => {
-  // const setCurrentOperations = useSetRecoilState(currentOperationsState);
   const [currentOperations, setCurrentOperations] = useRecoilState(currentOperationsState);
+  const [currentDirectory, setCurrentDirectory] = useRecoilState(currentDirectoryState);
+  const setDirectoryList = useSetRecoilState(directoryListState);
+
+  const updateState = (operation: LinkOperation, jobToModify: LinkOperationType, value: string) => {
+    setCurrentOperations((oldCurrentOperations: LinkOperation[]) => {
+      const updatedOperations = produce(oldCurrentOperations, (draftState) => {
+        const executingOperation = draftState.find((op) => op.id === operation.id);
+        const currentJob = executingOperation!!.jobs.find((job) => job.type === jobToModify);
+        currentJob[value] = true;
+      });
+      return updatedOperations;
+    });
+  };
 
   const handleIncoming = async (operation: LinkOperation) => {
     await sleep(1000);
@@ -33,19 +46,52 @@ const ExecutionSubscriber: React.FunctionComponent<IExecutionSubscriberProps> = 
     for (const job of operation.jobs) {
       switch (job.type) {
         case LinkOperationType.COPY: {
+          /**
+           * ROBOCOPY
+           */
+          updateState(operation, LinkOperationType.COPY, 'inProgress');
+          await robocopy(path, destination);
+          updateState(operation, LinkOperationType.COPY, 'done');
+          /**
+           * Remove Directory
+           */
           setCurrentOperations((oldCurrentOperations: LinkOperation[]) => {
             const updatedOperations = produce(oldCurrentOperations, (draftState) => {
               const executingOperation = draftState.find((op) => op.id === operation.id);
-              const currentJob = executingOperation!!.jobs.find((job) => job.type === LinkOperationType.COPY);
+              const currentJob = executingOperation!!.jobs.find(
+                (job) => job.type === LinkOperationType.REMOVE_DIRECTORY
+              );
               currentJob!!.inProgress = true;
             });
             return updatedOperations;
           });
-          await robocopy(path, destination);
+          await removeDirectory(path);
           setCurrentOperations((oldCurrentOperations: LinkOperation[]) => {
             const updatedOperations = produce(oldCurrentOperations, (draftState) => {
               const executingOperation = draftState.find((op) => op.id === operation.id);
-              const currentJob = executingOperation!!.jobs.find((job) => job.type === LinkOperationType.COPY);
+              const currentJob = executingOperation!!.jobs.find(
+                (job) => job.type === LinkOperationType.REMOVE_DIRECTORY
+              );
+              currentJob!!.done = true;
+            });
+            return updatedOperations;
+          });
+          /**
+           * Make Link
+           */
+          setCurrentOperations((oldCurrentOperations: LinkOperation[]) => {
+            const updatedOperations = produce(oldCurrentOperations, (draftState) => {
+              const executingOperation = draftState.find((op) => op.id === operation.id);
+              const currentJob = executingOperation!!.jobs.find((job) => job.type === LinkOperationType.MAKE_LINK);
+              currentJob!!.inProgress = true;
+            });
+            return updatedOperations;
+          });
+          await makeLink(path, destination);
+          setCurrentOperations((oldCurrentOperations: LinkOperation[]) => {
+            const updatedOperations = produce(oldCurrentOperations, (draftState) => {
+              const executingOperation = draftState.find((op) => op.id === operation.id);
+              const currentJob = executingOperation!!.jobs.find((job) => job.type === LinkOperationType.MAKE_LINK);
               currentJob!!.done = true;
             });
             return updatedOperations;
@@ -53,32 +99,10 @@ const ExecutionSubscriber: React.FunctionComponent<IExecutionSubscriberProps> = 
         }
       }
     }
-    // const copyExecution = operation.find((row) => row.id === operation. && row.type === LinkOperationType.COPY);
-    // copyExecution!!.inProgress = true;
-    // await robocopy(row.original.path, destination);
-    // copyExecution!!.done = true;
-    // store.set('currentOperations')([...store.get('currentOperations'), ...operations]);
 
-    // // Remove directory
-    // console.log('  RUNNING RD');
-    // const rdExecution = operations.find(
-    //   (row) => row.id === executionId && row.type === LinkOperationType.REMOVE_DIRECTORY
-    // );
-    // rdExecution!!.inProgress = true;
-    // await removeDirectory(row.original.path);
-    // rdExecution!!.done = true;
-    // store.set('currentOperations')([...store.get('currentOperations'), ...operations]);
-
-    // // Make link
-    // console.log('  RUNNING MKLINK');
-    // const mkLinkExecution = operations.find(
-    //   (row) => row.id === executionId && row.type === LinkOperationType.MAKE_LINK
-    // );
-    // mkLinkExecution!!.inProgress = true;
-    // await makeLink(row.original.path, destination);
-    // mkLinkExecution!!.done = true;
-
-    // store.set('currentOperations')([...store.get('currentOperations'), ...operations]);
+    // Refresh our directory list after each operation
+    const subdirs = getSubdirectories(currentDirectory);
+    setDirectoryList(subdirs);
   };
 
   const sleep = (ms = 2000) => {

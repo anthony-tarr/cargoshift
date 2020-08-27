@@ -3,9 +3,10 @@ import styled from 'styled-components';
 import classnames from 'classnames';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronUp, faChevronDown } from '@fortawesome/free-solid-svg-icons';
-import { lighten } from 'polished';
+import { lighten, darken } from 'polished';
 import { useRecoilValue } from 'recoil';
 import { currentOperationsState } from '../../recoil/Recoil';
+import Job from './Job';
 
 const Container = styled.div`
   margin: 10px 0;
@@ -33,6 +34,8 @@ const Content = styled.div`
   opacity: 0;
   border-radius: 2px;
   background: #1a1a2e;
+  overflow-y: scroll;
+  font-size: 14px;
 
   &.toggled {
     transition: opacity 0.1s, height 0.5s;
@@ -41,18 +44,16 @@ const Content = styled.div`
   }
 `;
 
+const OperationTitle = styled.div`
+  padding: 2px;
+  border-bottom: 1px solid ${lighten(0.05, '#1a1a2e')};
+`;
+
 const Operation = styled.div`
-  color: ${(props: { done: boolean; inProgress: boolean }) => {
-    if (props.done) {
-      return 'green';
-    }
-
-    if (props.inProgress) {
-      return 'yellow';
-    }
-
-    return 'red';
-  }};
+  margin: 4px;
+  padding: 2px;
+  border: 1px solid ${lighten(0.05, '#1a1a2e')};
+  background: ${darken(0.025, '#1a1a2e')};
 `;
 
 interface IProgressWindowProps {}
@@ -75,13 +76,15 @@ const ProgressWindow: React.FC<IProgressWindowProps> = () => {
         <FontAwesomeIcon icon={icon} />
       </Window>
       <Content className={progressContentClassname}>
-        {currentOperations.map((operation) =>
-          operation.jobs.map((job) => (
-            <Operation inProgress={job.inProgress} done={job.done}>
-              {job.message}
-            </Operation>
-          ))
-        )}
+        {currentOperations.map((operation) => (
+          <Operation>
+            {operation.jobs.map((job) => (
+              <Job inProgress={job.inProgress} done={job.done}>
+                {job.message}
+              </Job>
+            ))}
+          </Operation>
+        ))}
       </Content>
     </Container>
   );

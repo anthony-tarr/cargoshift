@@ -102,100 +102,25 @@ const Actions: React.FunctionComponent<IActionsProps> = () => {
       return getExecutionOperation(row, executionId, row.original.path, `${outputDirectory}\\${row.original.name}`);
     });
 
-    console.log('RAW TOTAL OPERATIONS', rawTotalOperations);
     rawTotalOperations.forEach((op) => subject.next(op));
-
-    // Recieve an array of operations to execute
-    // Send to our store
-    // Use RXJS to configure max concurrency with mergeMap
-
-    // const totalOperations: LinkOperation[] = ([] as LinkOperation[]).concat(...rawTotalOperations);
-
-    // for (const operationList of rawTotalOperations) {
-    //   for (const operation in operationList) {
-    //     const destination = `${outputDirectory}\\${row.original.name}`;
-
-    //     // Copy directory over
-    //     console.log('  RUNNING COPY');
-    //     const copyExecution = operationList.find((row) => row.id === operation. && row.type === LinkOperationType.COPY);
-    //     copyExecution!!.inProgress = true;
-    //     await robocopy(row.original.path, destination);
-    //     copyExecution!!.done = true;
-    //     store.set('currentOperations')([...store.get('currentOperations'), ...operations]);
-
-    //     // Remove directory
-    //     console.log('  RUNNING RD');
-    //     const rdExecution = operations.find(
-    //       (row) => row.id === executionId && row.type === LinkOperationType.REMOVE_DIRECTORY
-    //     );
-    //     rdExecution!!.inProgress = true;
-    //     await removeDirectory(row.original.path);
-    //     rdExecution!!.done = true;
-    //     store.set('currentOperations')([...store.get('currentOperations'), ...operations]);
-
-    //     // Make link
-    //     console.log('  RUNNING MKLINK');
-    //     const mkLinkExecution = operations.find(
-    //       (row) => row.id === executionId && row.type === LinkOperationType.MAKE_LINK
-    //     );
-    //     mkLinkExecution!!.inProgress = true;
-    //     await makeLink(row.original.path, destination);
-    //     mkLinkExecution!!.done = true;
-
-    //     store.set('currentOperations')([...store.get('currentOperations'), ...operations]);
-    //   }
-
-    //   // Copy directory over
-    //   console.log('  RUNNING COPY');
-    //   const copyExecution = operations.find((row) => row.id === executionId && row.type === LinkOperationType.COPY);
-    //   copyExecution!!.inProgress = true;
-    //   await robocopy(row.original.path, destination);
-    //   copyExecution!!.done = true;
-    //   store.set('currentOperations')([...store.get('currentOperations'), ...operations]);
-
-    //   // Remove directory
-    //   console.log('  RUNNING RD');
-    //   const rdExecution = operations.find(
-    //     (row) => row.id === executionId && row.type === LinkOperationType.REMOVE_DIRECTORY
-    //   );
-    //   rdExecution!!.inProgress = true;
-    //   await removeDirectory(row.original.path);
-    //   rdExecution!!.done = true;
-    //   store.set('currentOperations')([...store.get('currentOperations'), ...operations]);
-
-    //   // Make link
-    //   console.log('  RUNNING MKLINK');
-    //   const mkLinkExecution = operations.find(
-    //     (row) => row.id === executionId && row.type === LinkOperationType.MAKE_LINK
-    //   );
-    //   mkLinkExecution!!.inProgress = true;
-    //   await makeLink(row.original.path, destination);
-    //   mkLinkExecution!!.done = true;
-
-    //   store.set('currentOperations')([...store.get('currentOperations'), ...operations]);
-    // }
-
-    // console.log('refreshing directories');
-    // const subdirs = getSubdirectories(currentDirectory);
-    // store.set('directoryList')(subdirs);
   };
 
   const removeSymlink = async () => {
-    // for (const row of selectedRows) {
-    //   // Remove the symlink directory
-    //   console.log('  RUNNING RD');
-    //   await removeDirectory(row.original.path, true);
-    //   // Copy from destination dir back to source
-    //   console.log(`${outputDirectory}\\${row.original.name}`);
-    //   console.log('  RUNNING COPY');
-    //   await robocopy(`${outputDirectory}\\${row.original.name}`, row.original.path);
-    //   // Remove destination dir
-    //   console.log('  RUNNING RD');
-    //   await removeDirectory(`${outputDirectory}\\${row.original.name}`);
-    // }
-    // console.log('refreshing directories');
-    // const subdirs = getSubdirectories(currentDirectory);
-    // store.set('directoryList')(subdirs);
+    for (const row of selectedRows) {
+      // Remove the symlink directory
+      console.log('  RUNNING RD');
+      await removeDirectory(row.original.path, true);
+      // Copy from destination dir back to source
+      console.log(`${outputDirectory}\\${row.original.name}`);
+      console.log('  RUNNING COPY');
+      await robocopy(`${outputDirectory}\\${row.original.name}`, row.original.path);
+      // Remove destination dir
+      console.log('  RUNNING RD');
+      await removeDirectory(`${outputDirectory}\\${row.original.name}`);
+    }
+    console.log('refreshing directories');
+    const subdirs = getSubdirectories(currentDirectory);
+    //('directoryList')(subdirs);
   };
 
   const isRemoveLinkDisabled = () => {

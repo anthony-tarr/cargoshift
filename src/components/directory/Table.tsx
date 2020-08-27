@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useTable, useRowSelect, UseRowSelectRowProps, TableRow as TableRowType } from 'react-table';
+import { useTable, useRowSelect, UseRowSelectRowProps, TableRow as TableRowType, useSortBy } from 'react-table';
 import { useMemo } from 'react';
 import { DirectoryTreeRow } from '../../model/DirectoryTreeRow';
 import styled from 'styled-components';
@@ -17,6 +17,7 @@ const RowHover = styled.td`
 
 const StyledHeader = styled.th`
   padding: 12px;
+  user-select: none;
 `;
 
 const Cell = styled.td`
@@ -99,6 +100,7 @@ const Table: React.FC = () => {
       columns,
       data,
     },
+    useSortBy,
     useRowSelect
   ) as any;
 
@@ -153,7 +155,9 @@ const Table: React.FC = () => {
         {headerGroups.map((headerGroup: Record<string, any>) => (
           <tr {...headerGroup.getHeaderGroupProps()}>
             {headerGroup.headers.map((column: Record<string, any>) => (
-              <StyledHeader {...column.getHeaderProps()}>{column.render('Header')}</StyledHeader>
+              <StyledHeader {...column.getHeaderProps(column.getSortByToggleProps())}>
+                {column.render('Header')}
+              </StyledHeader>
             ))}
           </tr>
         ))}
