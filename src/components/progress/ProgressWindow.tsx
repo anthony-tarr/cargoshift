@@ -76,11 +76,11 @@ const ProgressWindow: React.FC<IProgressWindowProps> = () => {
       </Window>
       <Content className={progressContentClassname}>
         {currentOperations.map((operation) =>
-          operation.jobs.map((job) => {
+          operation.jobs.map((job) => (
             <Operation inProgress={job.inProgress} done={job.done}>
               {job.message}
-            </Operation>;
-          })
+            </Operation>
+          ))
         )}
       </Content>
     </Container>

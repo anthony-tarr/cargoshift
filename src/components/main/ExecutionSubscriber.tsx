@@ -6,36 +6,53 @@ import { mergeMap, first, debounce, delay, tap, map } from 'rxjs/operators';
 import { interval, from } from 'rxjs';
 import { useSetRecoilState } from 'recoil';
 import { LinkOperation, LinkOperationType } from '../../model/LinkOperation';
+import produce from 'immer';
+import { robocopy } from '../../commands/Commands';
 
 interface IExecutionSubscriberProps {}
 
 const MAX_CONCURRENT_EXECUTIONS = 5;
+
+function replaceItemAtIndex(arr, index, newValue) {
+  return [...arr.slice(0, index), newValue, ...arr.slice(index + 1)];
+}
+
+function removeItemAtIndex(arr, index) {
+  return [...arr.slice(0, index), ...arr.slice(index + 1)];
+}
 
 const ExecutionSubscriber: React.FunctionComponent<IExecutionSubscriberProps> = (props) => {
   // const setCurrentOperations = useSetRecoilState(currentOperationsState);
   const [currentOperations, setCurrentOperations] = useRecoilState(currentOperationsState);
 
   const handleIncoming = async (operation: LinkOperation) => {
-    await sleep(2000);
-    console.log('after sleep');
-    //const { destination } = operation;
-    // Copy directory over
-    //console.log('  RUNNING COPY');
-    // for (const job of operation.jobs) {
-    //   switch (job.type) {
-    //     case LinkOperationType.COPY: {
-    //       // setCurrentOperations((oldCurrentOperations: LinkOperation[]) => {
-    //       //   const currentOperations = [...oldCurrentOperations];
-    //       //   console.log(currentOperations);
-    //       //   const executingOperation = currentOperations.find((op) => op.id === operation.id);
-    //       //   console.log(executingOperation);
-    //       //   const currentJob = operation.jobs.find((job) => job.type === LinkOperationType.COPY);
-    //       //   currentJob!!.inProgress = true;
-    //       //   return [...oldCurrentOperations, operation];
-    //       // });
-    //     }
-    //   }
-    // }
+    await sleep(1000);
+    console.log(operation);
+    const { path, destination } = operation;
+
+    for (const job of operation.jobs) {
+      switch (job.type) {
+        case LinkOperationType.COPY: {
+          setCurrentOperations((oldCurrentOperations: LinkOperation[]) => {
+            const updatedOperations = produce(oldCurrentOperations, (draftState) => {
+              const executingOperation = draftState.find((op) => op.id === operation.id);
+              const currentJob = executingOperation!!.jobs.find((job) => job.type === LinkOperationType.COPY);
+              currentJob!!.inProgress = true;
+            });
+            return updatedOperations;
+          });
+          await robocopy(path, destination);
+          setCurrentOperations((oldCurrentOperations: LinkOperation[]) => {
+            const updatedOperations = produce(oldCurrentOperations, (draftState) => {
+              const executingOperation = draftState.find((op) => op.id === operation.id);
+              const currentJob = executingOperation!!.jobs.find((job) => job.type === LinkOperationType.COPY);
+              currentJob!!.done = true;
+            });
+            return updatedOperations;
+          });
+        }
+      }
+    }
     // const copyExecution = operation.find((row) => row.id === operation. && row.type === LinkOperationType.COPY);
     // copyExecution!!.inProgress = true;
     // await robocopy(row.original.path, destination);
@@ -85,7 +102,7 @@ const ExecutionSubscriber: React.FunctionComponent<IExecutionSubscriberProps> = 
         mergeMap(mergeMapHandler, MAX_CONCURRENT_EXECUTIONS)
       )
       .subscribe({
-        next: (v) => console.log(v),
+        next: (v) => {},
       });
   }, []);
 
