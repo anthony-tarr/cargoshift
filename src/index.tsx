@@ -1,7 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
-import Store from './undux/Store';
+import { RecoilRoot } from 'recoil';
+import ExecutionSubscriber from './components/main/ExecutionSubscriber';
 
 const remote = window.require('electron').remote;
 const win = remote.getCurrentWindow();
@@ -52,8 +53,9 @@ function handleWindowControls() {
 }
 
 ReactDOM.render(
-  <Store.Container>
+  <RecoilRoot>
+    <ExecutionSubscriber />
     <App />
-  </Store.Container>,
+  </RecoilRoot>,
   document.getElementById('root')
 );

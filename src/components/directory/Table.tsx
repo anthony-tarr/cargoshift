@@ -1,11 +1,12 @@
 import * as React from 'react';
-import { useTable, useRowSelect, UseRowSelectRowProps } from 'react-table';
+import { useTable, useRowSelect, UseRowSelectRowProps, TableRow as TableRowType, useSortBy } from 'react-table';
 import { useMemo } from 'react';
-import Store from '../undux/Store';
-import { DirectoryTreeRow } from '../model/DirectoryTreeRow';
+import { DirectoryTreeRow } from '../../model/DirectoryTreeRow';
 import styled from 'styled-components';
 import OpenDirectory from './OpenDirectory';
-import { getSubdirectories } from '../util/directory/DirectoryUtils';
+import { getSubdirectories } from '../../util/directory/DirectoryUtils';
+import { selectedRowsState, directoryListState, currentDirectoryState } from '../../recoil/Recoil';
+import { useRecoilState, useSetRecoilState, constSelector } from 'recoil';
 
 const RowHover = styled.td`
   background: black;
@@ -16,6 +17,7 @@ const RowHover = styled.td`
 
 const StyledHeader = styled.th`
   padding: 12px;
+  user-select: none;
 `;
 
 const Cell = styled.td`
@@ -39,7 +41,7 @@ const StyledTable = styled.table`
   border-collapse: collapse;
 `;
 
-const TableRow = styled.tr`
+const TableRow = styled.tr<{ selected: boolean }>`
   color: ${(props) => (props.selected ? '#fff' : '#eee')};
   background: ${(props) => (props.selected ? 'rgba(0, 0, 0, 0.5)' : 'transparent')};
   height: 24px;
@@ -60,14 +62,13 @@ const TableRow = styled.tr`
 `;
 
 const Table: React.FC = () => {
-  const store = Store.useStore();
-  const [hoveredRow, setHoveredRow] = React.useState<number>();
-
-  const directoryList = store.get('directoryList');
+  const setSelectedRows = useSetRecoilState(selectedRowsState);
+  const [directoryList, setDirectoryList] = useRecoilState<any>(directoryListState);
+  const [currentDirectory, setCurrentDirectory] = useRecoilState<string>(currentDirectoryState);
 
   const data = useMemo(
     () =>
-      directoryList.map((directory) => ({
+      directoryList.map((directory: DirectoryTreeRow) => ({
         name: directory.name,
         goTo: <OpenDirectory directory={directory} />,
         linkedPath: directory.linkedPath,
@@ -99,36 +100,41 @@ const Table: React.FC = () => {
       columns,
       data,
     },
+    useSortBy,
     useRowSelect
   ) as any;
 
   React.useEffect(() => {
-    store.set('selectedRows')(selectedFlatRows);
+    const selectedRows = selectedFlatRows.map(
+      (row: TableRowType<DirectoryTreeRow> & UseRowSelectRowProps<DirectoryTreeRow>) => ({
+        id: row.id,
+        index: row.index,
+        isSelected: row.isSelected,
+        original: row.original,
+        values: row.values,
+      })
+    );
+    setSelectedRows(selectedRows);
   }, [selectedFlatRows]);
 
-  const selectRow = (row: UseRowSelectRowProps<DirectoryTreeRow>) => {
-    row.toggleRowSelected();
-  };
-
-  const onRowHover = (row: Row) => {
-    setHoveredRow(row.index);
-  };
-
-  const onTableLeave = (row) => {
-    setHoveredRow(undefined);
-  };
+  const selectRow = (row: UseRowSelectRowProps<DirectoryTreeRow>) => row.toggleRowSelected();
 
   const navigateToParent = () => {
-    const split = store.get('currentDirectory').split('\\');
+    // Remove trailing slash
+    let workingDirectory = currentDirectory.trim();
+    if (workingDirectory.endsWith('\\')) {
+      workingDirectory = workingDirectory.slice(0, -1);
+    }
+    const split = workingDirectory.split('\\');
     split.pop();
     const path = `${split.join('\\')}\\`;
     const subdirs = getSubdirectories(path);
-    store.set('directoryList')(subdirs);
-    store.set('currentDirectory')(path);
+    setDirectoryList(subdirs);
+    setCurrentDirectory(path);
   };
 
   const renderNavigateToParent = () => {
-    const split = store.get('currentDirectory').split('\\');
+    const split = currentDirectory.split('\\');
     const noParent = split.length < 2 || (split.length === 2 && split[1].trim() === '');
 
     if (!noParent)
@@ -149,14 +155,16 @@ const Table: React.FC = () => {
         {headerGroups.map((headerGroup: Record<string, any>) => (
           <tr {...headerGroup.getHeaderGroupProps()}>
             {headerGroup.headers.map((column: Record<string, any>) => (
-              <StyledHeader {...column.getHeaderProps()}>{column.render('Header')}</StyledHeader>
+              <StyledHeader {...column.getHeaderProps(column.getSortByToggleProps())}>
+                {column.render('Header')}
+              </StyledHeader>
             ))}
           </tr>
         ))}
       </thead>
       <tbody {...getTableBodyProps()}>
         {renderNavigateToParent()}
-        {rows.map((row: Row & UseRowSelectRowProps<DirectoryTreeRow>) => {
+        {rows.map((row: any & UseRowSelectRowProps<DirectoryTreeRow>) => {
           prepareRow(row);
           return (
             <TableRow selected={row.isSelected} onClick={() => selectRow(row)} {...row.getRowProps()}>

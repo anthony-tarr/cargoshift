@@ -9,7 +9,7 @@ class Datastore {
   public insert() {
     console.log(ipcRenderer.sendSync('synchronous-message', 'ping')); // prints "pong"
 
-    ipcRenderer.on('asynchronous-reply', (event, arg) => {
+    ipcRenderer.on('asynchronous-reply', (_event: any, arg: any) => {
       console.log(arg); // prints "pong"
     });
 

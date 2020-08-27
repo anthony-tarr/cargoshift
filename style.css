@@ -21,7 +21,7 @@ body {
 body {
   font-family: 'Segoe UI', sans-serif;
   background: #1a2933;
-  color: #fff;
+  /* color: #fff; */
   border: 1px solid #131e25;
   overflow-y: hidden;
 }
@@ -131,8 +131,11 @@ body {
   width: 0.3em;
 }
 
+::-webkit-scrollbar-track {
+}
+
 ::-webkit-scrollbar-thumb:window-inactive,
 ::-webkit-scrollbar-thumb {
-  background: black;
+  background: #111;
   border-radius: 8px;
 }
