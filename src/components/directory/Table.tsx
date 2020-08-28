@@ -7,6 +7,7 @@ import OpenDirectory from './OpenDirectory';
 import { getSubdirectories } from '../../util/directory/DirectoryUtils';
 import { selectedRowsState, directoryListState, currentDirectoryState } from '../../recoil/Recoil';
 import { useRecoilState, useSetRecoilState, constSelector } from 'recoil';
+import Size from './Size';
 
 const RowHover = styled.td`
   background: black;
@@ -21,7 +22,7 @@ const StyledHeader = styled.th`
 `;
 
 const Cell = styled.td`
-  padding: 6px;
+  padding: 6px 14px;
   position: relative;
   cursor: pointer;
   user-select: none;
@@ -73,6 +74,7 @@ const Table: React.FC = () => {
         goTo: <OpenDirectory directory={directory} />,
         linkedPath: directory.linkedPath,
         path: directory.path,
+        size: <Size path={directory.path} />,
       })),
     [directoryList]
   );
@@ -90,6 +92,10 @@ const Table: React.FC = () => {
       {
         Header: 'Link Path',
         accessor: 'linkedPath',
+      },
+      {
+        Header: 'Size',
+        accessor: 'size',
       },
     ],
     []

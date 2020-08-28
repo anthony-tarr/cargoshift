@@ -1,5 +1,7 @@
 import { Dirent } from 'fs';
 import { DirectoryTreeRow } from '../../model/DirectoryTreeRow';
+import eachAsync from 'tiny-each-async';
+import path from 'path';
 const fs = window.require('fs');
 
 export function getSubdirectories(path: string) {
@@ -29,3 +31,56 @@ const mapColumns = (dir: Dirent, path: string): DirectoryTreeRow => {
     path: finalPath,
   };
 };
+
+export function getFolderSize() {}
+
+export function readFolderSize(...args: any[]) {
+  args.unshift(new Set());
+
+  return readSizeRecursive(...args);
+}
+
+// Default was 5000 but that thrashes the SSD
+const MAX_CONCURRENT_ASYNC = 1000;
+
+function readSizeRecursive(seen: Set<any>, directory: string, callback: (err?: Error, size?: number) => void) {
+  fs.stat(directory, function stat(e, stats) {
+    let total = !e ? stats.size || 0 : 0;
+
+    if (stats) {
+      if (seen.has(stats.ino)) {
+        return callback(undefined, 0);
+      }
+
+      seen.add(stats.ino);
+    }
+
+    if (!e && stats.isDirectory()) {
+      fs.readdir(directory, (err, list) => {
+        if (err) {
+          console.error('Error inside the function', err);
+          //return callback(err);
+        } else {
+          eachAsync(
+            list,
+            MAX_CONCURRENT_ASYNC,
+            (dirItem, next) => {
+              readSizeRecursive(seen, path.join(directory, dirItem), (error, size) => {
+                if (!error) {
+                  total += size;
+                }
+
+                next();
+              });
+            },
+            (finalErr) => {
+              callback(finalErr, total);
+            }
+          );
+        }
+      });
+    } else {
+      callback(undefined, total);
+    }
+  });
+}

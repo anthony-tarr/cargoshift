@@ -5,7 +5,7 @@ import { subject } from '../../OperationHandler';
 import { mergeMap, first, debounce, delay, tap, map } from 'rxjs/operators';
 import { interval, from } from 'rxjs';
 import { useSetRecoilState } from 'recoil';
-import { LinkOperation, LinkOperationType } from '../../model/LinkOperation';
+import { LinkOperation, LinkOperationType, LinkOperationJob } from '../../model/LinkOperation';
 import produce from 'immer';
 import { robocopy, removeDirectory, makeLink } from '../../commands/Commands';
 import { getSubdirectories } from '../../util/directory/DirectoryUtils';
@@ -13,14 +13,6 @@ import { getSubdirectories } from '../../util/directory/DirectoryUtils';
 interface IExecutionSubscriberProps {}
 
 const MAX_CONCURRENT_EXECUTIONS = 5;
-
-function replaceItemAtIndex(arr, index, newValue) {
-  return [...arr.slice(0, index), newValue, ...arr.slice(index + 1)];
-}
-
-function removeItemAtIndex(arr, index) {
-  return [...arr.slice(0, index), ...arr.slice(index + 1)];
-}
 
 const ExecutionSubscriber: React.FunctionComponent<IExecutionSubscriberProps> = (props) => {
   const [currentOperations, setCurrentOperations] = useRecoilState(currentOperationsState);
@@ -32,7 +24,7 @@ const ExecutionSubscriber: React.FunctionComponent<IExecutionSubscriberProps> = 
       const updatedOperations = produce(oldCurrentOperations, (draftState) => {
         const executingOperation = draftState.find((op) => op.id === operation.id);
         const currentJob = executingOperation!!.jobs.find((job) => job.type === jobToModify);
-        currentJob[value] = true;
+        (currentJob as any)[value] = true;
       });
       return updatedOperations;
     });
