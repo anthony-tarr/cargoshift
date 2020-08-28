@@ -1,13 +1,22 @@
 import * as React from 'react';
-import { useTable, useRowSelect, UseRowSelectRowProps, TableRow as TableRowType, useSortBy } from 'react-table';
+import {
+  useTable,
+  useRowSelect,
+  UseRowSelectRowProps,
+  TableRow as TableRowType,
+  useSortBy,
+  TableOptions,
+  UseSortByOptions,
+} from 'react-table';
 import { useMemo } from 'react';
 import { DirectoryTreeRow } from '../../model/DirectoryTreeRow';
 import styled from 'styled-components';
 import OpenDirectory from './OpenDirectory';
-import { getSubdirectories } from '../../util/directory/DirectoryUtils';
+import { getSubdirectories, readFolderSize } from '../../util/directory/DirectoryUtils';
 import { selectedRowsState, directoryListState, currentDirectoryState } from '../../recoil/Recoil';
-import { useRecoilState, useSetRecoilState, constSelector } from 'recoil';
-import Size from './Size';
+import { useRecoilState, useSetRecoilState } from 'recoil';
+import DirectorySize from './DirectorySize';
+import produce from 'immer';
 
 const RowHover = styled.td`
   background: black;
@@ -66,17 +75,39 @@ const Table: React.FC = () => {
   const setSelectedRows = useSetRecoilState(selectedRowsState);
   const [directoryList, setDirectoryList] = useRecoilState<any>(directoryListState);
   const [currentDirectory, setCurrentDirectory] = useRecoilState<string>(currentDirectoryState);
+  const [fileSizes, setFileSizes] = React.useState<number[]>([]);
+
+  React.useEffect(() => {
+    const getDirectorySize = (path: string, index: number) => {
+      readFolderSize(path, (_err: any, size: number) => {
+        setFileSizes((prevFileSize) =>
+          produce(prevFileSize, (draftFileSize) => {
+            draftFileSize[index] = size;
+          })
+        );
+      });
+    };
+
+    setFileSizes([]);
+
+    directoryList.map((directory: DirectoryTreeRow, index: number) => {
+      getDirectorySize(directory.path, index);
+    });
+  }, [directoryList]);
 
   const data = useMemo(
     () =>
-      directoryList.map((directory: DirectoryTreeRow) => ({
-        name: directory.name,
-        goTo: <OpenDirectory directory={directory} />,
-        linkedPath: directory.linkedPath,
-        path: directory.path,
-        size: <Size path={directory.path} />,
-      })),
-    [directoryList]
+      directoryList.map((directory: DirectoryTreeRow, index: number) => {
+        return {
+          name: directory.name,
+          goTo: <OpenDirectory directory={directory} />,
+          linkedPath: directory.linkedPath,
+          path: directory.path,
+          rawSize: fileSizes[index] || null,
+          size: <DirectorySize size={fileSizes[index]} />,
+        };
+      }),
+    [directoryList, fileSizes]
   );
 
   const columns = useMemo(
@@ -96,15 +127,26 @@ const Table: React.FC = () => {
       {
         Header: 'Size',
         accessor: 'size',
+        sortType: (rowA: any, rowB: any, _colId: string, desc: boolean) => {
+          const aSize = rowA.original.rawSize || 0;
+          const bSize = rowB.original.rawSize || 0;
+          return aSize > bSize ? 1 : -1;
+          // if (desc) {
+
+          // } else {
+          //   return aSize < bSize;
+          // }
+        },
       },
     ],
     []
   );
 
-  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow, selectedFlatRows } = useTable(
+  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow, selectedFlatRows } = useTable<any>(
     {
       columns,
       data,
+      autoResetSortBy: false,
     },
     useSortBy,
     useRowSelect

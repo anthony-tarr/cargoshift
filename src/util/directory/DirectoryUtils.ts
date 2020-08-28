@@ -32,16 +32,15 @@ const mapColumns = (dir: Dirent, path: string): DirectoryTreeRow => {
   };
 };
 
-export function getFolderSize() {}
-
 export function readFolderSize(...args: any[]) {
+  console.log('attempting to read for directory: ' + args[0]);
   args.unshift(new Set());
 
   return readSizeRecursive(...args);
 }
 
 // Default was 5000 but that thrashes the SSD
-const MAX_CONCURRENT_ASYNC = 1000;
+const MAX_CONCURRENT_ASYNC = 5000;
 
 function readSizeRecursive(seen: Set<any>, directory: string, callback: (err?: Error, size?: number) => void) {
   fs.stat(directory, function stat(e, stats) {

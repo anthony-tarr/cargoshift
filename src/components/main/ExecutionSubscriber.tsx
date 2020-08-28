@@ -2,10 +2,9 @@ import * as React from 'react';
 import { currentOperationsState, currentDirectoryState, directoryListState } from '../../recoil/Recoil';
 import { useRecoilState } from 'recoil';
 import { subject } from '../../OperationHandler';
-import { mergeMap, first, debounce, delay, tap, map } from 'rxjs/operators';
-import { interval, from } from 'rxjs';
+import { mergeMap, map } from 'rxjs/operators';
 import { useSetRecoilState } from 'recoil';
-import { LinkOperation, LinkOperationType, LinkOperationJob } from '../../model/LinkOperation';
+import { LinkOperation, LinkOperationType } from '../../model/LinkOperation';
 import produce from 'immer';
 import { robocopy, removeDirectory, makeLink } from '../../commands/Commands';
 import { getSubdirectories } from '../../util/directory/DirectoryUtils';
@@ -14,9 +13,9 @@ interface IExecutionSubscriberProps {}
 
 const MAX_CONCURRENT_EXECUTIONS = 5;
 
-const ExecutionSubscriber: React.FunctionComponent<IExecutionSubscriberProps> = (props) => {
-  const [currentOperations, setCurrentOperations] = useRecoilState(currentOperationsState);
-  const [currentDirectory, setCurrentDirectory] = useRecoilState(currentDirectoryState);
+const ExecutionSubscriber: React.FunctionComponent<IExecutionSubscriberProps> = () => {
+  const [, setCurrentOperations] = useRecoilState(currentOperationsState);
+  const [currentDirectory] = useRecoilState(currentDirectoryState);
   const setDirectoryList = useSetRecoilState(directoryListState);
 
   const updateState = (operation: LinkOperation, jobToModify: LinkOperationType, value: string) => {
@@ -118,7 +117,7 @@ const ExecutionSubscriber: React.FunctionComponent<IExecutionSubscriberProps> = 
         mergeMap(mergeMapHandler, MAX_CONCURRENT_EXECUTIONS)
       )
       .subscribe({
-        next: (v) => {},
+        next: () => {},
       });
   }, []);
 

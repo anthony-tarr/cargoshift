@@ -1,10 +1,5 @@
 import * as React from 'react';
-import { readFolderSize } from '../../util/directory/DirectoryUtils';
 import styled from 'styled-components';
-
-interface ISizeProps {
-  path: string;
-}
 
 const Ellipsis = styled.div`
   .spinner {
@@ -42,17 +37,14 @@ const Ellipsis = styled.div`
   }
 `;
 
-const Size: React.FunctionComponent<ISizeProps> = (props) => {
-  const [directorySize, setDirectorySize] = React.useState<number | null>(null);
-  const gigabytes = directorySize && (directorySize / 1024 / 1024 / 1024).toFixed(2);
+interface ISizeProps {
+  size: number | null;
+}
 
-  React.useEffect(() => {
-    readFolderSize(props.path, (err, size) => {
-      setDirectorySize(size);
-    });
-  });
+const DirectorySize: React.FunctionComponent<ISizeProps> = ({ size }) => {
+  const gigabytes = size && (size / 1024 / 1024 / 1024).toFixed(2);
 
-  if (directorySize === null) {
+  if (!size) {
     return (
       <Ellipsis>
         <div className="spinner">
@@ -66,4 +58,4 @@ const Size: React.FunctionComponent<ISizeProps> = (props) => {
   return <div>{gigabytes} GB</div>;
 };
 
-export default Size;
+export default DirectorySize;

@@ -33,17 +33,18 @@ const Button = styled.button`
   padding: 12px;
   border-radius: 4px;
   color: #eee;
-  background: rgba(255, 255, 255, 0.1);
+  background: #313f48;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
 
   &:hover {
+    /* add lighten function to this dude */
     background: rgba(255, 255, 255, 0.2);
   }
 
   &:disabled {
     pointer-events: none;
-    background: rgba(1, 1, 1, 0.1);
+    background: #17252e;
   }
 `;
 
