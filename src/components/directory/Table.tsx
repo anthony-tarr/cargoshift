@@ -12,11 +12,13 @@ import { useMemo } from 'react';
 import { DirectoryTreeRow } from '../../model/DirectoryTreeRow';
 import styled from 'styled-components';
 import OpenDirectory from './OpenDirectory';
-import { getSubdirectories, readFolderSize } from '../../util/directory/DirectoryUtils';
+import { getSubdirectories } from '../../util/directory/DirectoryUtils';
 import { selectedRowsState, directoryListState, currentDirectoryState } from '../../recoil/Recoil';
 import { useRecoilState, useSetRecoilState } from 'recoil';
 import DirectorySize from './DirectorySize';
 import produce from 'immer';
+import { getTotalDirectorySize } from '../../commands/Commands';
+import Datastore from '../../database/Datastore';
 
 const RowHover = styled.td`
   background: black;
@@ -71,6 +73,8 @@ const TableRow = styled.tr<{ selected: boolean }>`
   }
 `;
 
+const db = new Datastore();
+
 const Table: React.FC = () => {
   const setSelectedRows = useSetRecoilState(selectedRowsState);
   const [directoryList, setDirectoryList] = useRecoilState<any>(directoryListState);
@@ -78,11 +82,13 @@ const Table: React.FC = () => {
   const [fileSizes, setFileSizes] = React.useState<number[]>([]);
 
   React.useEffect(() => {
-    const getDirectorySize = (path: string, index: number) => {
-      readFolderSize(path, (_err: any, size: number) => {
+    const getDirectorySize = async (path: string, index: number) => {
+      getTotalDirectorySize(path).then((size: number) => {
+        // When bytes is 0, state doesn't get set, so just force it to 1 for now
+        const fileSize = size === 0 ? 1 : size;
         setFileSizes((prevFileSize) =>
           produce(prevFileSize, (draftFileSize) => {
-            draftFileSize[index] = size;
+            draftFileSize[index] = fileSize;
           })
         );
       });
@@ -179,6 +185,7 @@ const Table: React.FC = () => {
     const subdirs = getSubdirectories(path);
     setDirectoryList(subdirs);
     setCurrentDirectory(path);
+    db.upsert({ settings: 'directories' }, { $set: { currentDirectory: path } });
   };
 
   const renderNavigateToParent = () => {

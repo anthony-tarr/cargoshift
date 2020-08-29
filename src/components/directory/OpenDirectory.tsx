@@ -6,6 +6,7 @@ import { faFolderOpen } from '@fortawesome/free-solid-svg-icons';
 import styled from 'styled-components';
 import { useRecoilState } from 'recoil';
 import { currentDirectoryState, outputDirectoryState, directoryListState } from '../../recoil/Recoil';
+import Datastore from '../../database/Datastore';
 
 interface IOpenDirectoryProps {
   directory: DirectoryTreeRow;
@@ -19,6 +20,8 @@ const StyledOpenDirectory = styled.div`
   width: 60px;
 `;
 
+const db = new Datastore();
+
 const OpenDirectory: React.FunctionComponent<IOpenDirectoryProps> = (props) => {
   const [currentDirectory, setCurrentDirectory] = useRecoilState(currentDirectoryState);
   const [directoryList, setDirectoryList] = useRecoilState(directoryListState);
@@ -27,6 +30,7 @@ const OpenDirectory: React.FunctionComponent<IOpenDirectoryProps> = (props) => {
     const subdirs = getSubdirectories(props.directory.path);
     setDirectoryList(subdirs);
     setCurrentDirectory(props.directory.path);
+    db.upsert({ settings: 'directories' }, { $set: { currentDirectory: props.directory.path } });
   };
 
   return (

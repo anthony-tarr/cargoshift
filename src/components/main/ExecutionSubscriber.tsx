@@ -22,7 +22,7 @@ const ExecutionSubscriber: React.FunctionComponent<IExecutionSubscriberProps> = 
     setCurrentOperations((oldCurrentOperations: LinkOperation[]) => {
       const updatedOperations = produce(oldCurrentOperations, (draftState) => {
         const executingOperation = draftState.find((op) => op.id === operation.id);
-        const currentJob = executingOperation!!.jobs.find((job) => job.type === jobToModify);
+        const currentJob = executingOperation!!.jobs.find((job) => job.type === jobToModify && !job.done);
         (currentJob as any)[value] = true;
       });
       return updatedOperations;
@@ -30,63 +30,53 @@ const ExecutionSubscriber: React.FunctionComponent<IExecutionSubscriberProps> = 
   };
 
   const handleIncoming = async (operation: LinkOperation) => {
-    await sleep(1000);
-    console.log(operation);
     const { path, destination } = operation;
 
-    for (const job of operation.jobs) {
-      switch (job.type) {
-        case LinkOperationType.COPY: {
-          /**
-           * ROBOCOPY
-           */
-          updateState(operation, LinkOperationType.COPY, 'inProgress');
-          await robocopy(path, destination);
-          updateState(operation, LinkOperationType.COPY, 'done');
-          /**
-           * Remove Directory
-           */
-          setCurrentOperations((oldCurrentOperations: LinkOperation[]) => {
-            const updatedOperations = produce(oldCurrentOperations, (draftState) => {
-              const executingOperation = draftState.find((op) => op.id === operation.id);
-              const currentJob = executingOperation!!.jobs.find(
-                (job) => job.type === LinkOperationType.REMOVE_DIRECTORY
-              );
-              currentJob!!.inProgress = true;
-            });
-            return updatedOperations;
-          });
-          await removeDirectory(path);
-          setCurrentOperations((oldCurrentOperations: LinkOperation[]) => {
-            const updatedOperations = produce(oldCurrentOperations, (draftState) => {
-              const executingOperation = draftState.find((op) => op.id === operation.id);
-              const currentJob = executingOperation!!.jobs.find(
-                (job) => job.type === LinkOperationType.REMOVE_DIRECTORY
-              );
-              currentJob!!.done = true;
-            });
-            return updatedOperations;
-          });
-          /**
-           * Make Link
-           */
-          setCurrentOperations((oldCurrentOperations: LinkOperation[]) => {
-            const updatedOperations = produce(oldCurrentOperations, (draftState) => {
-              const executingOperation = draftState.find((op) => op.id === operation.id);
-              const currentJob = executingOperation!!.jobs.find((job) => job.type === LinkOperationType.MAKE_LINK);
-              currentJob!!.inProgress = true;
-            });
-            return updatedOperations;
-          });
-          await makeLink(path, destination);
-          setCurrentOperations((oldCurrentOperations: LinkOperation[]) => {
-            const updatedOperations = produce(oldCurrentOperations, (draftState) => {
-              const executingOperation = draftState.find((op) => op.id === operation.id);
-              const currentJob = executingOperation!!.jobs.find((job) => job.type === LinkOperationType.MAKE_LINK);
-              currentJob!!.done = true;
-            });
-            return updatedOperations;
-          });
+    if (operation.type === 'CREATE_LINK') {
+      for (const job of operation.jobs) {
+        switch (job.type) {
+          case LinkOperationType.COPY: {
+            updateState(operation, LinkOperationType.COPY, 'inProgress');
+            await robocopy(path, destination);
+            updateState(operation, LinkOperationType.COPY, 'done');
+            break;
+          }
+          case LinkOperationType.REMOVE_DIRECTORY: {
+            updateState(operation, LinkOperationType.REMOVE_DIRECTORY, 'inProgress');
+            await removeDirectory(path);
+            updateState(operation, LinkOperationType.REMOVE_DIRECTORY, 'done');
+            break;
+          }
+          case LinkOperationType.MAKE_LINK: {
+            updateState(operation, LinkOperationType.MAKE_LINK, 'inProgress');
+            await makeLink(path, destination);
+            updateState(operation, LinkOperationType.MAKE_LINK, 'done');
+            break;
+          }
+        }
+      }
+    } else if (operation.type === 'REMOVE_LINK') {
+      for (const job of operation.jobs) {
+        switch (job.type) {
+          case LinkOperationType.COPY: {
+            updateState(operation, LinkOperationType.COPY, 'inProgress');
+            await robocopy(destination, path);
+            updateState(operation, LinkOperationType.COPY, 'done');
+            break;
+          }
+          case LinkOperationType.REMOVE_DIRECTORY: {
+            updateState(operation, LinkOperationType.REMOVE_DIRECTORY, 'inProgress');
+            if (job.secondRemoval) {
+              await removeDirectory(destination);
+            } else {
+              await removeDirectory(path);
+            }
+            updateState(operation, LinkOperationType.REMOVE_DIRECTORY, 'done');
+            break;
+          }
+          case LinkOperationType.MAKE_LINK: {
+            throw Error('Remove link should not be creating new symlinks');
+          }
         }
       }
     }

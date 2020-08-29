@@ -1,7 +1,15 @@
 import * as React from 'react';
 import styled from 'styled-components';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
 
 const Ellipsis = styled.div`
+  .icon {
+    width: 100%;
+    display: grid;
+    place-items: center;
+    text-align: center;
+  }
   .spinner {
     text-align: center;
   }
@@ -44,6 +52,9 @@ interface ISizeProps {
 const DirectorySize: React.FunctionComponent<ISizeProps> = ({ size }) => {
   const gigabytes = size && (size / 1024 / 1024 / 1024).toFixed(2);
 
+  if (size === -1) {
+    return <FontAwesomeIcon className="icon" icon={faExclamationCircle} />;
+  }
   if (!size) {
     return (
       <Ellipsis>

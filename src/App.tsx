@@ -2,7 +2,7 @@ import 'regenerator-runtime/runtime';
 import React from 'react';
 import styled from 'styled-components';
 import Table from './components/directory/Table';
-import { getSubdirectories, readFolderSize } from './util/directory/DirectoryUtils';
+import { getSubdirectories } from './util/directory/DirectoryUtils';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEllipsisH } from '@fortawesome/free-solid-svg-icons';
 import TopNav from './components/navigation/TopNav';
@@ -11,7 +11,7 @@ import { useRecoilState } from 'recoil';
 import { currentDirectoryState, outputDirectoryState, directoryListState } from './recoil/Recoil';
 import './_index.scss';
 import { useSetRecoilState } from 'recoil';
-
+import Datastore from './database/Datastore';
 const electron = window.require('electron');
 const { remote } = electron;
 
@@ -86,15 +86,12 @@ const DirectoryButton = styled.button`
 
 const Content = styled.div``;
 
+const db = new Datastore();
+
 const App = () => {
   const [currentDirectory, setCurrentDirectory] = useRecoilState(currentDirectoryState);
   const [outputDirectory, setOutputDirectory] = useRecoilState(outputDirectoryState);
   const setDirectoryList = useSetRecoilState(directoryListState);
-
-  const folderSize = readFolderSize('E:/ThreeOutOf10Ep1', (err, size) => {
-    console.error(err);
-    console.log(size);
-  });
 
   const handleDirectoryOpen = async () => {
     const res = await remote.dialog.showOpenDialog({
@@ -111,6 +108,7 @@ const App = () => {
       const subdirs = getSubdirectories(path);
       setDirectoryList(subdirs);
       setCurrentDirectory(path);
+      db.upsert({ settings: 'directories' }, { $set: { currentDirectory: path } });
     }
   };
 

@@ -1,10 +1,15 @@
 const { app, ipcMain } = require('electron');
 const homePath = app.getPath('home');
 const Datastore = require('nedb');
+const { fdir } = require('fdir');
 
-ipcMain.on('asynchronous-message', (event, arg) => {
-  console.log(arg); // prints "ping"
-  event.reply('asynchronous-reply', 'pong');
+ipcMain.on('walk-directory', (event, arg) => {
+  console.log(arg);
+  const api = new fdir().withFullPaths().crawl(arg);
+  api.withPromise().then((files) => {
+    console.log(files);
+    event.reply('walk-directory:response', files);
+  });
 });
 
 ipcMain.on('synchronous-message', (event, arg) => {

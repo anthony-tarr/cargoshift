@@ -58,10 +58,12 @@
     "@fortawesome/free-regular-svg-icons": "^5.14.0",
     "@fortawesome/free-solid-svg-icons": "^5.14.0",
     "@fortawesome/react-fontawesome": "^0.1.11",
+    "@types/async": "^3.2.3",
     "@types/classnames": "^2.2.10",
     "@types/recoil": "0.0.1",
     "classnames": "^2.2.6",
     "electron-is-dev": "^1.2.0",
+    "fdir": "^4.1.0",
     "get-file-properties": "^1.0.1",
     "immer": "^7.0.8",
     "nedb": "^1.8.0",
@@ -75,7 +77,6 @@
     "rimraf": "^3.0.2",
     "rxjs": "^6.6.2",
     "styled-components": "^5.1.1",
-    "tiny-each-async": "^2.0.3",
     "typescript": "^3.9.7",
     "uuid": "^8.3.0"
   }

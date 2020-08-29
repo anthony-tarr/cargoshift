@@ -66,8 +66,6 @@ const ProgressWindow: React.FC<IProgressWindowProps> = () => {
     setContentWindowToggled(!contentWindowToggled);
   };
 
-  console.log(currentOperations);
-
   const icon = contentWindowToggled ? faChevronDown : faChevronUp;
   const progressContentClassname = classnames('progress-content', { toggled: contentWindowToggled });
   return (

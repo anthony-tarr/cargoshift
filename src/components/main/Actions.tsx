@@ -8,6 +8,7 @@ import { UseTableRowProps } from 'react-table';
 import { DirectoryTreeRow } from '../../model/DirectoryTreeRow';
 import { subject } from '../../OperationHandler';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
+import { lighten, darken } from 'polished';
 import {
   currentDirectoryState,
   outputDirectoryState,
@@ -39,7 +40,7 @@ const Button = styled.button`
 
   &:hover {
     /* add lighten function to this dude */
-    background: rgba(255, 255, 255, 0.2);
+    background: ${lighten(0.2, '#313f48')};
   }
 
   &:disabled {
@@ -70,6 +71,7 @@ const Actions: React.FunctionComponent<IActionsProps> = () => {
   ): LinkOperation => {
     return {
       id: executionId,
+      type: 'CREATE_LINK',
       done: false,
       inProgress: false,
       path: sourcePath,
@@ -97,6 +99,43 @@ const Actions: React.FunctionComponent<IActionsProps> = () => {
     };
   };
 
+  const getRemoveLinkOperations = (
+    row: UseTableRowProps<DirectoryTreeRow>,
+    executionId: string,
+    sourcePath: string,
+    destinationPath: string
+  ): LinkOperation => {
+    return {
+      id: executionId,
+      type: 'REMOVE_LINK',
+      done: false,
+      inProgress: false,
+      path: sourcePath,
+      destination: destinationPath,
+      jobs: [
+        {
+          done: false,
+          inProgress: false,
+          message: `Removing link directory ${row.original.name}`,
+          type: LinkOperationType.REMOVE_DIRECTORY,
+        },
+        {
+          done: false,
+          inProgress: false,
+          message: `Copying ${outputDirectory}\\${row.original.name} to its original source: ${row.original.name}`,
+          type: LinkOperationType.COPY,
+        },
+        {
+          done: false,
+          inProgress: false,
+          message: `Removing directory ${outputDirectory}\\${row.original.name}`,
+          secondRemoval: true,
+          type: LinkOperationType.REMOVE_DIRECTORY,
+        },
+      ],
+    };
+  };
+
   const createSymlink = async () => {
     const rawTotalOperations: LinkOperation[] = selectedRows.map((row: UseTableRowProps<DirectoryTreeRow>) => {
       const executionId: string = uuid.v4();
@@ -107,21 +146,12 @@ const Actions: React.FunctionComponent<IActionsProps> = () => {
   };
 
   const removeSymlink = async () => {
-    for (const row of selectedRows) {
-      // Remove the symlink directory
-      console.log('  RUNNING RD');
-      await removeDirectory(row.original.path, true);
-      // Copy from destination dir back to source
-      console.log(`${outputDirectory}\\${row.original.name}`);
-      console.log('  RUNNING COPY');
-      await robocopy(`${outputDirectory}\\${row.original.name}`, row.original.path);
-      // Remove destination dir
-      console.log('  RUNNING RD');
-      await removeDirectory(`${outputDirectory}\\${row.original.name}`);
-    }
-    console.log('refreshing directories');
-    const subdirs = getSubdirectories(currentDirectory);
-    //('directoryList')(subdirs);
+    const rawTotalOperations: LinkOperation[] = selectedRows.map((row: UseTableRowProps<DirectoryTreeRow>) => {
+      const executionId: string = uuid.v4();
+      return getRemoveLinkOperations(row, executionId, row.original.path, `${outputDirectory}\\${row.original.name}`);
+    });
+
+    rawTotalOperations.forEach((op) => subject.next(op));
   };
 
   const isRemoveLinkDisabled = () => {
