@@ -78,6 +78,16 @@ const Operation = styled.div`
   background: ${darken(0.025, '#1a1a2e')};
 `;
 
+const NoJobs = styled.div`
+  width: 100%;
+  height: 100%;
+  display: grid;
+  color: #aaa;
+  place-items: center;
+  text-align: center;
+  padding: 10px;
+`;
+
 enum WINDOW_MAX_HEIGHT_STATE {
   CLOSED,
   OPEN,
@@ -104,6 +114,23 @@ const ProgressWindow: React.FC<IProgressWindowProps> = () => {
     });
   };
 
+  const displayNoJobsMessage = () => {
+    if (!currentOperations || currentOperations.length < 1) {
+      return (
+        <NoJobs>
+          <div>
+            No jobs to display.
+            <br />
+            <br />
+            This is where any currently running executions or finished jobs will appear.
+          </div>
+        </NoJobs>
+      );
+    }
+
+    return null;
+  };
+
   const icon = contentWindowToggled === WINDOW_MAX_HEIGHT_STATE.LARGE ? faChevronDown : faChevronUp;
   const progressContentClassname = classnames('progress-content', {
     toggled: contentWindowToggled === WINDOW_MAX_HEIGHT_STATE.OPEN,
@@ -115,6 +142,7 @@ const ProgressWindow: React.FC<IProgressWindowProps> = () => {
         <FontAwesomeIcon icon={icon} />
       </Window>
       <Content className={progressContentClassname}>
+        {displayNoJobsMessage()}
         {currentOperations.map((operation) => (
           <Operation>
             {operation.jobs.map((job) => (

@@ -7,7 +7,8 @@ interface ITopNavProps {}
 
 const StyledTopNav = styled.div`
   font-family: 'NotoSans';
-  letter-spacing: 0.1em;
+  font-size: 12px;
+  letter-spacing: 0.15em;
   display: flex;
   position: fixed;
   height: 42px;
