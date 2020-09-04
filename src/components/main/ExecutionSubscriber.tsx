@@ -8,10 +8,13 @@ import { LinkOperation, LinkOperationType } from '../../model/LinkOperation';
 import produce from 'immer';
 import { robocopy, removeDirectory, makeLink } from '../../commands/Commands';
 import { getSubdirectories } from '../../util/directory/DirectoryUtils';
+import Datastore from '../../database/Datastore';
 
 interface IExecutionSubscriberProps {}
 
 const MAX_CONCURRENT_EXECUTIONS = 5;
+
+const db = new Datastore();
 
 const ExecutionSubscriber: React.FunctionComponent<IExecutionSubscriberProps> = () => {
   const [, setCurrentOperations] = useRecoilState(currentOperationsState);
@@ -82,12 +85,13 @@ const ExecutionSubscriber: React.FunctionComponent<IExecutionSubscriberProps> = 
     }
 
     // Refresh our directory list after each operation
+    if (operation.type === 'CREATE_LINK') {
+      db.addToLinkList(path, destination);
+    } else if (operation.type === 'REMOVE_LINK') {
+      db.removeFromLinkList(path, destination);
+    }
     const subdirs = getSubdirectories(currentDirectory);
     setDirectoryList(subdirs);
-  };
-
-  const sleep = (ms = 2000) => {
-    return new Promise((resolve) => setTimeout(resolve, ms));
   };
 
   const addToState = (value) => {
@@ -96,7 +100,6 @@ const ExecutionSubscriber: React.FunctionComponent<IExecutionSubscriberProps> = 
   };
 
   const mergeMapHandler = (project) => {
-    console.log(project);
     return handleIncoming(project);
   };
 

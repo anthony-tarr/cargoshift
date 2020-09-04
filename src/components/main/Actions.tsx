@@ -34,18 +34,21 @@ const Button = styled.button`
   padding: 12px;
   border-radius: 4px;
   color: #eee;
-  background: #313f48;
+  background: rgba(58, 26, 63, 0.9); /* #3a1a3f */
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  /* background: #313f48; */
   cursor: pointer;
   transition: all 0.2s ease-in-out;
+  backdrop-filter: blur(5px);
 
   &:hover {
-    /* add lighten function to this dude */
-    background: ${lighten(0.2, '#313f48')};
+    background: ${lighten(0.05, '#3a1a3f')};
   }
 
   &:disabled {
-    pointer-events: none;
-    background: #17252e;
+    /* pointer-events: none; */
+    cursor: not-allowed;
+    background: rgba(0, 0, 0, 0.2);
   }
 `;
 
@@ -137,6 +140,10 @@ const Actions: React.FunctionComponent<IActionsProps> = () => {
   };
 
   const createSymlink = async () => {
+    if (isCreateLinkDisabled()) {
+      return;
+    }
+
     const rawTotalOperations: LinkOperation[] = selectedRows.map((row: UseTableRowProps<DirectoryTreeRow>) => {
       const executionId: string = uuid.v4();
       return getExecutionOperation(row, executionId, row.original.path, `${outputDirectory}\\${row.original.name}`);
@@ -146,12 +153,29 @@ const Actions: React.FunctionComponent<IActionsProps> = () => {
   };
 
   const removeSymlink = async () => {
+    if (isRemoveLinkDisabled()) {
+      return;
+    }
+
     const rawTotalOperations: LinkOperation[] = selectedRows.map((row: UseTableRowProps<DirectoryTreeRow>) => {
       const executionId: string = uuid.v4();
       return getRemoveLinkOperations(row, executionId, row.original.path, `${outputDirectory}\\${row.original.name}`);
     });
 
     rawTotalOperations.forEach((op) => subject.next(op));
+  };
+
+  const isCreateLinkDisabled = () => {
+    if (selectedRows.length < 1) {
+      return true;
+    }
+    const hasLinkedPath = selectedRows.find(
+      (row: UseTableRowProps<DirectoryTreeRow>) => row.original.linkedPath !== null
+    );
+    if (hasLinkedPath) {
+      return true;
+    }
+    return false;
   };
 
   const isRemoveLinkDisabled = () => {
@@ -168,7 +192,7 @@ const Actions: React.FunctionComponent<IActionsProps> = () => {
     <StyledActions>
       <ProgressWindow />
       <FloatingButtons>
-        <Button disabled={selectedRows.length < 1 || !isRemoveLinkDisabled()} onClick={createSymlink}>
+        <Button disabled={isCreateLinkDisabled()} onClick={createSymlink}>
           Create link
         </Button>
         <Button disabled={isRemoveLinkDisabled()} onClick={removeSymlink}>

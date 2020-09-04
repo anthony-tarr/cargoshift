@@ -55,7 +55,7 @@ const StyledTable = styled.table`
 
 const TableRow = styled.tr<{ selected: boolean }>`
   color: ${(props) => (props.selected ? '#fff' : '#eee')};
-  background: ${(props) => (props.selected ? 'rgba(0, 0, 0, 0.5)' : 'transparent')};
+  background: ${(props) => (props.selected ? 'rgba(0, 0, 0, 0.35)' : 'transparent')};
   height: 24px;
   padding: 0 12px;
   margin: 2px 0;
@@ -66,6 +66,7 @@ const TableRow = styled.tr<{ selected: boolean }>`
   }
 
   &:hover {
+    background: ${(props) => (props.selected ? 'rgba(0, 0, 0, 0.4)' : 'rgba(0, 0, 0, 0.2)')};
     color: #fff;
     .open-directory {
       opacity: 1;

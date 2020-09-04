@@ -19,9 +19,10 @@ body {
 }
 
 body {
+  background-color: #7f5a83;
+  background-image: linear-gradient(315deg, #7f5a83 0%, #0d324d 74%);
+
   font-family: 'Segoe UI', sans-serif;
-  background: #1a2933;
-  /* color: #fff; */
   border: 1px solid #131e25;
   overflow-y: hidden;
 }
@@ -32,6 +33,7 @@ body {
   height: 24px;
   width: calc(100% - 2px);
   user-select: none;
+  color: #fff;
 }
 
 #titlebar #drag-region {

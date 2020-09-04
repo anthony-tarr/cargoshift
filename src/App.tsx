@@ -31,6 +31,17 @@ const SelectionHeader = styled.div`
   background: rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(0, 0, 0, 0.2);
   padding: 20px;
+
+  &:before {
+    z-index: -1;
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    content: ' ';
+    filter: blur(15px);
+    transform: scale(1.2);
+  }
 `;
 
 const Path = styled.div`

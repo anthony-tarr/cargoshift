@@ -25,6 +25,18 @@ const Window = styled.div`
   &:hover {
     background: ${lighten(0.1, '#1a1a2e')};
   }
+
+  &.toggled {
+    border-radius: 0px;
+    border-top-right-radius: 2px;
+    border-top-left-radius: 2px;
+  }
+
+  &.maximum {
+    border-radius: 0px;
+    border-top-right-radius: 2px;
+    border-top-left-radius: 2px;
+  }
 `;
 
 const Content = styled.div`
@@ -32,14 +44,24 @@ const Content = styled.div`
   transition: opacity 0.4s, height 0.5s;
   height: 0px;
   opacity: 0;
-  border-radius: 2px;
-  background: #1a1a2e;
+  border-bottom-right-radius: 2px;
+  border-bottom-left-radius: 2px;
+  background: rgba(26, 26, 46, 0.95);
+  backdrop-filter: blur(2px);
   overflow-y: scroll;
   font-size: 14px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.11), 0 2px 2px rgba(0, 0, 0, 0.11), 0 4px 4px rgba(0, 0, 0, 0.11),
+    0 8px 8px rgba(0, 0, 0, 0.11), 0 16px 16px rgba(0, 0, 0, 0.11), 0 32px 32px rgba(0, 0, 0, 0.11);
 
   &.toggled {
     transition: opacity 0.1s, height 0.5s;
     height: 250px;
+    opacity: 1;
+  }
+
+  &.maximum {
+    transition: opacity 0.1s, height 0.5s;
+    height: calc(100vh - 200px);
     opacity: 1;
   }
 `;
@@ -56,21 +78,40 @@ const Operation = styled.div`
   background: ${darken(0.025, '#1a1a2e')};
 `;
 
+enum WINDOW_MAX_HEIGHT_STATE {
+  CLOSED,
+  OPEN,
+  LARGE,
+}
+
 interface IProgressWindowProps {}
 
 const ProgressWindow: React.FC<IProgressWindowProps> = () => {
   const currentOperations = useRecoilValue(currentOperationsState);
 
-  const [contentWindowToggled, setContentWindowToggled] = React.useState(false);
+  const [contentWindowToggled, setContentWindowToggled] = React.useState(WINDOW_MAX_HEIGHT_STATE.CLOSED);
+
   const toggleContentWindow = () => {
-    setContentWindowToggled(!contentWindowToggled);
+    setContentWindowToggled((oldValue) => {
+      switch (oldValue) {
+        case WINDOW_MAX_HEIGHT_STATE.CLOSED:
+          return WINDOW_MAX_HEIGHT_STATE.OPEN;
+        case WINDOW_MAX_HEIGHT_STATE.OPEN:
+          return WINDOW_MAX_HEIGHT_STATE.LARGE;
+        case WINDOW_MAX_HEIGHT_STATE.LARGE:
+          return WINDOW_MAX_HEIGHT_STATE.CLOSED;
+      }
+    });
   };
 
-  const icon = contentWindowToggled ? faChevronDown : faChevronUp;
-  const progressContentClassname = classnames('progress-content', { toggled: contentWindowToggled });
+  const icon = contentWindowToggled === WINDOW_MAX_HEIGHT_STATE.LARGE ? faChevronDown : faChevronUp;
+  const progressContentClassname = classnames('progress-content', {
+    toggled: contentWindowToggled === WINDOW_MAX_HEIGHT_STATE.OPEN,
+    maximum: contentWindowToggled === WINDOW_MAX_HEIGHT_STATE.LARGE,
+  });
   return (
     <Container>
-      <Window onClick={toggleContentWindow}>
+      <Window onClick={toggleContentWindow} className={progressContentClassname}>
         <FontAwesomeIcon icon={icon} />
       </Window>
       <Content className={progressContentClassname}>
