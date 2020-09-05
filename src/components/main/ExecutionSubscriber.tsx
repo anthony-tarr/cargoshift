@@ -84,6 +84,17 @@ const ExecutionSubscriber: React.FunctionComponent<IExecutionSubscriberProps> = 
       }
     }
 
+    // Set our operation state to done
+    setCurrentOperations((oldCurrentOperations: LinkOperation[]) => {
+      const updatedOperations = produce(oldCurrentOperations, (draftState) => {
+        const executingOperation = draftState.find((op) => op.id === operation.id);
+        if (executingOperation) {
+          executingOperation.done = true;
+        }
+      });
+      return updatedOperations;
+    });
+
     // Refresh our directory list after each operation
     if (operation.type === 'CREATE_LINK') {
       db.addToLinkList(path, destination);
@@ -94,13 +105,13 @@ const ExecutionSubscriber: React.FunctionComponent<IExecutionSubscriberProps> = 
     setDirectoryList(subdirs);
   };
 
-  const addToState = (value) => {
-    setCurrentOperations((oldCurrentOperations) => [...oldCurrentOperations, value]);
-    return value;
+  const addToState = (operation: LinkOperation) => {
+    setCurrentOperations((oldCurrentOperations) => [...oldCurrentOperations, operation]);
+    return operation;
   };
 
-  const mergeMapHandler = (project) => {
-    return handleIncoming(project);
+  const mergeMapHandler = (operation: LinkOperation) => {
+    return handleIncoming(operation);
   };
 
   React.useEffect(() => {

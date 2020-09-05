@@ -7,6 +7,7 @@ import { lighten, darken } from 'polished';
 import { useRecoilValue } from 'recoil';
 import { currentOperationsState } from '../../recoil/Recoil';
 import Job from './Job';
+import DismissOperation from './DismissOperation';
 
 const Container = styled.div`
   margin: 10px 0;
@@ -72,6 +73,7 @@ const OperationTitle = styled.div`
 `;
 
 const Operation = styled.div`
+  position: relative;
   margin: 4px;
   padding: 2px;
   border: 1px solid ${lighten(0.05, '#1a1a2e')};
@@ -145,6 +147,7 @@ const ProgressWindow: React.FC<IProgressWindowProps> = () => {
         {displayNoJobsMessage()}
         {currentOperations.map((operation) => (
           <Operation>
+            <DismissOperation operation={operation} />
             {operation.jobs.map((job) => (
               <Job inProgress={job.inProgress} done={job.done}>
                 {job.message}
