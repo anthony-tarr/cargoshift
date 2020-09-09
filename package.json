@@ -36,6 +36,10 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/async": "^3.2.3",
+    "@types/classnames": "^2.2.10",
+    "@types/react-router-dom": "^5.1.5",
+    "@types/recoil": "0.0.1",
     "@types/nedb": "^1.8.10",
     "@types/node": "^14.6.0",
     "@types/react": "^16.9.46",
@@ -50,7 +54,8 @@
     "electron-builder": "^22.8.0",
     "parcel": "^2.0.0-beta.1",
     "sass": "^1.26.10",
-    "wait-on": "^5.2.0"
+    "wait-on": "^5.2.0",
+    "rimraf": "^3.0.2"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.30",
@@ -58,9 +63,7 @@
     "@fortawesome/free-regular-svg-icons": "^5.14.0",
     "@fortawesome/free-solid-svg-icons": "^5.14.0",
     "@fortawesome/react-fontawesome": "^0.1.11",
-    "@types/async": "^3.2.3",
-    "@types/classnames": "^2.2.10",
-    "@types/recoil": "0.0.1",
+    "async": "^3.2.0",
     "classnames": "^2.2.6",
     "electron-is-dev": "^1.2.0",
     "fdir": "^4.1.0",
@@ -71,10 +74,10 @@
     "polished": "^3.6.5",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
+    "react-router-dom": "^5.2.0",
     "react-table": "^7.5.0",
     "recoil": "0.0.10",
     "regenerator-runtime": "^0.13.7",
-    "rimraf": "^3.0.2",
     "rxjs": "^6.6.2",
     "styled-components": "^5.1.1",
     "typescript": "^3.9.7",

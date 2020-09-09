@@ -1,13 +1,5 @@
 import * as React from 'react';
-import {
-  useTable,
-  useRowSelect,
-  UseRowSelectRowProps,
-  TableRow as TableRowType,
-  useSortBy,
-  TableOptions,
-  UseSortByOptions,
-} from 'react-table';
+import { useTable, useRowSelect, UseRowSelectRowProps, TableRow as TableRowType, useSortBy } from 'react-table';
 import { useMemo } from 'react';
 import { DirectoryTreeRow } from '../../model/DirectoryTreeRow';
 import styled from 'styled-components';
@@ -19,13 +11,8 @@ import DirectorySize from './DirectorySize';
 import produce from 'immer';
 import { getTotalDirectorySize } from '../../commands/Commands';
 import Datastore from '../../database/Datastore';
-
-const RowHover = styled.td`
-  background: black;
-  opacity: 0.5;
-  position: absolute;
-  width: 100%;
-`;
+import { from } from 'rxjs';
+import { mergeMap } from 'rxjs/operators';
 
 const StyledHeader = styled.th`
   padding: 12px;
@@ -84,22 +71,25 @@ const Table: React.FC = () => {
 
   React.useEffect(() => {
     const getDirectorySize = async (path: string, index: number) => {
-      getTotalDirectorySize(path).then((size: number) => {
-        // When bytes is 0, state doesn't get set, so just force it to 1 for now
-        const fileSize = size === 0 ? 1 : size;
-        setFileSizes((prevFileSize) =>
-          produce(prevFileSize, (draftFileSize) => {
-            draftFileSize[index] = fileSize;
-          })
-        );
-      });
+      const size = await getTotalDirectorySize(path);
+      // When bytes is 0, state doesn't get set, so just force it to 1 for now
+      const fileSize = size === 0 ? 1 : size;
+      setFileSizes((prevFileSize) =>
+        produce(prevFileSize, (draftFileSize) => {
+          draftFileSize[index] = fileSize;
+        })
+      );
     };
 
     setFileSizes([]);
 
-    directoryList.map((directory: DirectoryTreeRow, index: number) => {
-      getDirectorySize(directory.path, index);
-    });
+    from(directoryList)
+      .pipe(
+        mergeMap((directory: any, index: number) => {
+          return getDirectorySize(directory.path, index);
+        }, 2)
+      )
+      .subscribe((val) => console.log(val));
   }, [directoryList]);
 
   const data = useMemo(
@@ -138,11 +128,6 @@ const Table: React.FC = () => {
           const aSize = rowA.original.rawSize || 0;
           const bSize = rowB.original.rawSize || 0;
           return aSize > bSize ? 1 : -1;
-          // if (desc) {
-
-          // } else {
-          //   return aSize < bSize;
-          // }
         },
       },
     ],

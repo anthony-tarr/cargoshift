@@ -12,6 +12,7 @@ import { currentDirectoryState, outputDirectoryState, directoryListState } from 
 import './_index.scss';
 import { useSetRecoilState } from 'recoil';
 import Datastore from './database/Datastore';
+import { HashRouter as Router, Switch, Route } from 'react-router-dom';
 const electron = window.require('electron');
 const { remote } = electron;
 
@@ -140,38 +141,49 @@ const App = () => {
 
   return (
     <>
-      <TopNav />
-
-      <Container>
-        <div>
-          <SelectionHeader>
-            <Path>
-              <div className="header">Source Folder</div>
-              <Input>
-                <div className="inputField">{currentDirectory}</div>
-                <DirectoryButton onClick={handleDirectoryOpen}>
-                  <FontAwesomeIcon icon={faEllipsisH} />
-                </DirectoryButton>
-              </Input>
-            </Path>
-            <Path>
-              <div className="header">Destination Folder</div>
-              <Input>
-                <div className="inputField">{outputDirectory}</div>
-                <DirectoryButton onClick={handleDirectoryOutDir}>
-                  <FontAwesomeIcon icon={faEllipsisH} />
-                </DirectoryButton>
-              </Input>
-            </Path>
-          </SelectionHeader>
-          <Content>
-            <div>
-              <Table />
-            </div>
-            <Actions />
-          </Content>
-        </div>
-      </Container>
+      <Router>
+        <TopNav />
+        <Container>
+          <Switch>
+            <Route exact path="/">
+              <div>
+                <SelectionHeader>
+                  <Path>
+                    <div className="header">Source Folder</div>
+                    <Input>
+                      <div className="inputField">{currentDirectory}</div>
+                      <DirectoryButton onClick={handleDirectoryOpen}>
+                        <FontAwesomeIcon icon={faEllipsisH} />
+                      </DirectoryButton>
+                    </Input>
+                  </Path>
+                  <Path>
+                    <div className="header">Destination Folder</div>
+                    <Input>
+                      <div className="inputField">{outputDirectory}</div>
+                      <DirectoryButton onClick={handleDirectoryOutDir}>
+                        <FontAwesomeIcon icon={faEllipsisH} />
+                      </DirectoryButton>
+                    </Input>
+                  </Path>
+                </SelectionHeader>
+                <Content>
+                  <div>
+                    <Table />
+                  </div>
+                  <Actions />
+                </Content>
+              </div>
+            </Route>
+            <Route path="/links">
+              <div>Links</div>
+            </Route>
+            <Route path="/settings">
+              <div>Settings</div>
+            </Route>
+          </Switch>
+        </Container>
+      </Router>
     </>
   );
 };

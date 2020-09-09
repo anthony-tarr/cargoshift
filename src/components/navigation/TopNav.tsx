@@ -2,6 +2,7 @@ import * as React from 'react';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCog, faHome } from '@fortawesome/free-solid-svg-icons';
+import { NavLink } from 'react-router-dom';
 
 interface ITopNavProps {}
 
@@ -21,6 +22,10 @@ const StyledTopNav = styled.div`
 
 const LeftSection = styled.div`
   display: flex;
+
+  .a-link {
+    text-decoration: none;
+  }
 `;
 
 const NavButton = styled.div`
@@ -32,6 +37,8 @@ const NavButton = styled.div`
   justify-content: center;
   align-items: center;
   transition: all 0.2s ease-in-out;
+  text-decoration: none;
+  color: #fff;
 
   &:hover {
     background: rgba(255, 255, 255, 0.05);
@@ -42,14 +49,20 @@ const TopNav: React.FunctionComponent<ITopNavProps> = (props) => {
   return (
     <StyledTopNav>
       <LeftSection>
-        <NavButton>HOME</NavButton>
-        <NavButton>LINKS</NavButton>
+        <NavLink className="a-link" to="/">
+          <NavButton>HOME</NavButton>
+        </NavLink>
+        <NavLink className="a-link" to="/links">
+          <NavButton>LINKS</NavButton>
+        </NavLink>
         <NavButton>LOGS</NavButton>
       </LeftSection>
       <div>
-        <NavButton>
-          <FontAwesomeIcon icon={faCog} />
-        </NavButton>
+        <NavLink className="a-link" to="/settings">
+          <NavButton>
+            <FontAwesomeIcon icon={faCog} />
+          </NavButton>
+        </NavLink>
       </div>
     </StyledTopNav>
   );
