@@ -76,7 +76,7 @@
     "react-dom": "^16.13.1",
     "react-router-dom": "^5.2.0",
     "react-table": "^7.5.0",
-    "recoil": "0.0.10",
+    "recoil": "0.7.5",
     "regenerator-runtime": "^0.13.7",
     "rxjs": "^6.6.2",
     "styled-components": "^5.1.1",
