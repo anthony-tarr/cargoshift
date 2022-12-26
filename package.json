@@ -74,7 +74,7 @@
     "polished": "^3.6.5",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
-    "react-router-dom": "^5.2.0",
+    "react-router-dom": "^6.6.1",
     "react-table": "^7.5.0",
     "recoil": "0.7.5",
     "regenerator-runtime": "^0.13.7",
